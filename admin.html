@@ -783,6 +783,32 @@ const ADMINS=['clubemetaoficial@gmail.com','thayslorita@gmail.com','admin@leisec
 
 // ── AUTH ──
 window.addEventListener('DOMContentLoaded',async()=>{
+  // Handle password reset token in URL
+  const hash = window.location.hash;
+  if(hash.includes('access_token') && hash.includes('type=recovery')){
+    const params = new URLSearchParams(hash.substring(1));
+    const token = params.get('access_token');
+    if(token){
+      // Set the session with the recovery token
+      const {error} = await sb.auth.setSession({
+        access_token: token,
+        refresh_token: params.get('refresh_token') || ''
+      });
+      if(!error){
+        const newPwd = prompt('Digite sua nova senha (mínimo 6 caracteres):');
+        if(newPwd && newPwd.length >= 6){
+          const {error: upErr} = await sb.auth.updateUser({password: newPwd});
+          if(!upErr){
+            alert('✅ Senha alterada com sucesso! Faça login com a nova senha.');
+            window.location.hash = '';
+          } else {
+            alert('Erro ao alterar senha: ' + upErr.message);
+          }
+        }
+      }
+    }
+  }
+
   loadPixels();
   const{data:{session}}=await sb.auth.getSession();
   if(session&&ADMINS.includes(session.user.email)){
@@ -815,7 +841,7 @@ async function forgotPwd(){
   const email = document.getElementById('adm-email').value.trim();
   if(!email){ alert('Digite seu email no campo acima primeiro.'); return; }
   const {error} = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://clubemeta.github.io/leisecaquest/leisecaquest-admin.html'
+    redirectTo: 'https://clubemeta.github.io/leisecaquest/admin'
   });
   if(error){ alert('Erro: ' + error.message); return; }
   alert('✅ E-mail de recuperação enviado para ' + email + '\nVerifique sua caixa de entrada.');
