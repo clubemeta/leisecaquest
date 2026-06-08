@@ -418,9 +418,56 @@ tr:hover td{background:#fafafa}
           </div>
           <div class="search-row">
             <input class="sinp" type="text" placeholder="Buscar lei, artigo, concurso..." id="q-search" oninput="filterQs(this.value)">
+            <select class="ssel" id="q-filter-prod" onchange="filterQsByProd(this.value)">
+              <option value="">Todos os produtos</option>
+              <option value="__none__">Sem produto (livres)</option>
+            </select>
+          </div>
+          <!-- BARRA DE AÇÕES EM MASSA -->
+          <div id="bulk-bar" style="display:none;padding:10px 18px;background:#e8f6fb;border-bottom:1px solid var(--blue-bd);display:none;align-items:center;gap:10px;flex-wrap:wrap">
+            <span id="bulk-count" style="font-size:.8rem;font-weight:600;color:var(--blue)">0 selecionadas</span>
+            <div style="flex:1"></div>
+            <select id="bulk-prod-sel" class="ssel" style="min-width:180px">
+              <option value="">Escolha o produto...</option>
+            </select>
+            <button class="btn btn-p" onclick="bulkVincular()" style="font-size:.78rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+              Vincular ao produto
+            </button>
+            <button class="btn btn-s" onclick="bulkDesvincular()" style="font-size:.78rem">Remover produto</button>
+            <button class="btn btn-s" onclick="clearSelection()" style="font-size:.78rem">✕ Cancelar</button>
+          </div>
+          <!-- VINCULAR POR LEI (em massa) -->
+          <div style="padding:10px 18px;background:#f9fafb;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:.76rem;font-weight:600;color:var(--muted)">Vincular por lei:</span>
+            <select id="bulk-lei-sel" class="ssel" style="min-width:180px">
+              <option value="">Selecione a lei...</option>
+              <option>Código Penal</option>
+              <option>Código Civil</option>
+              <option>Código de Processo Penal</option>
+              <option>Código de Processo Civil</option>
+              <option>Constituição Federal/88</option>
+              <option>CLT - Consolidação das Leis do Trabalho</option>
+              <option>Lei 8.429/92 - Improbidade Administrativa</option>
+              <option>Lei 11.343/06 - Lei de Drogas</option>
+              <option>Lei 11.340/06 - Lei Maria da Penha</option>
+              <option>ECA</option>
+              <option>Lei 8.112/90</option>
+              <option>Lei 6.015/73</option>
+            </select>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--dim);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+            <select id="bulk-prod-lei" class="ssel" style="min-width:180px">
+              <option value="">Selecione o produto...</option>
+            </select>
+            <button class="btn btn-p" onclick="vincularPorLei()" style="font-size:.78rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+              Vincular todas
+            </button>
           </div>
           <div class="tbl-wrap">
-            <table><thead><tr><th>#</th><th>Lei</th><th>Artigo</th><th>Enunciado</th><th>Banca</th><th>Ano</th><th>Status</th><th>Ações</th></tr></thead>
+            <table><thead><tr>
+              <th style="width:32px"><input type="checkbox" id="sel-all" onclick="toggleSelAll(this.checked)" title="Selecionar todas" style="cursor:pointer;width:14px;height:14px;accent-color:var(--blue)"></th>
+              <th>#</th><th>Lei</th><th>Artigo</th><th>Enunciado</th><th>Produto</th><th>Banca</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody id="q-tbody"></tbody></table>
           </div>
           <div style="padding:10px 16px;border-top:1px solid var(--bd);font-size:.76rem;color:var(--muted)" id="q-cnt-lbl">0 questões</div>
@@ -1162,21 +1209,114 @@ async function loadQuestions(){
   document.getElementById('q-cnt-lbl').textContent=`${ALL_Q.length} questões`;
   renderQs(ALL_Q);
 }
+// Seleção de questões
+var SEL_QS = new Set();
+
 function renderQs(qs){
-  document.getElementById('q-tbody').innerHTML=qs.slice(0,100).map((q,i)=>`
-    <tr>
+  SEL_QS.clear(); updateBulkBar();
+  document.getElementById('q-tbody').innerHTML=qs.slice(0,100).map((q,i)=>{
+    const prod = ALL_PROD.find(p=>p.id===q.product_id);
+    const prodBadge = prod ? `<span class="badge b-pu" style="font-size:.62rem;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${prod.name}">${prod.name}</span>` : '<span style="color:var(--dim);font-size:.7rem">livre</span>';
+    return `<tr id="qrow-${q.id}" style="transition:background .15s">
+      <td><input type="checkbox" class="q-cb" data-id="${q.id}" onchange="toggleSelQ('${q.id}',this.checked)" style="cursor:pointer;width:14px;height:14px;accent-color:var(--blue)"></td>
       <td style="color:var(--dim);font-size:.7rem">${i+1}</td>
-      <td style="font-weight:500;font-size:.76rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.lei||'—'}</td>
+      <td style="font-weight:500;font-size:.76rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.lei||'—'}</td>
       <td style="font-size:.75rem;color:var(--muted)">${q.artigo||'—'}</td>
-      <td style="font-size:.75rem;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.enunciado}</td>
+      <td style="font-size:.75rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.enunciado}</td>
+      <td>${prodBadge}</td>
       <td style="font-size:.75rem;color:var(--muted)">${q.banca||'—'}</td>
-      <td style="font-size:.75rem;color:var(--muted)">${q.ano||'—'}</td>
       <td><span class="badge ${q.active?'b-gr':'b-gy'}">${q.active?'Ativo':'Inativo'}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-s" style="padding:3px 8px;font-size:.7rem" onclick="openEditQ('${q.id}')">Editar</button>
         <button class="btn btn-d" style="padding:3px 8px;font-size:.7rem" onclick="delQ('${q.id}')">Del</button>
       </div></td>
-    </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--dim)">Nenhuma questão</td></tr>';
+    </tr>`;
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--dim)">Nenhuma questão</td></tr>';
+}
+
+function toggleSelQ(id, checked) {
+  if(checked) SEL_QS.add(id); else SEL_QS.delete(id);
+  const row = document.getElementById('qrow-'+id);
+  if(row) row.style.background = checked ? 'var(--blue-bg)' : '';
+  updateBulkBar();
+}
+
+function toggleSelAll(checked) {
+  document.querySelectorAll('.q-cb').forEach(cb => {
+    cb.checked = checked;
+    toggleSelQ(cb.dataset.id, checked);
+  });
+}
+
+function clearSelection() {
+  SEL_QS.clear();
+  document.querySelectorAll('.q-cb').forEach(cb => { cb.checked=false; });
+  document.querySelectorAll('[id^=qrow-]').forEach(r => r.style.background='');
+  const sa = document.getElementById('sel-all'); if(sa) sa.checked=false;
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const cnt = document.getElementById('bulk-count');
+  if(!bar) return;
+  if(SEL_QS.size > 0) {
+    bar.style.display='flex';
+    cnt.textContent = SEL_QS.size + ' questão' + (SEL_QS.size!==1?'ões':'') + ' selecionada' + (SEL_QS.size!==1?'s':'');
+  } else {
+    bar.style.display='none';
+  }
+}
+
+function filterQsByProd(prodId) {
+  if(!prodId) { renderQs(ALL_Q); return; }
+  if(prodId==='__none__') { renderQs(ALL_Q.filter(q=>!q.product_id)); return; }
+  renderQs(ALL_Q.filter(q=>q.product_id===prodId));
+}
+
+// Vincular selecionadas ao produto
+async function bulkVincular() {
+  const prodId = document.getElementById('bulk-prod-sel').value;
+  if(!prodId) { showToast('Escolha um produto primeiro','error'); return; }
+  if(!SEL_QS.size) { showToast('Nenhuma questão selecionada','error'); return; }
+  const ids = [...SEL_QS];
+  const prod = ALL_PROD.find(p=>p.id===prodId);
+  if(!confirm(`Vincular ${ids.length} questão(ões) ao produto "${prod?.name}"?`)) return;
+  const {error} = await sb.from('questions').update({product_id:prodId}).in('id',ids);
+  if(error) { showToast('Erro: '+error.message,'error'); return; }
+  showToast(`✅ ${ids.length} questão(ões) vinculada(s) a "${prod?.name}"!`,'success');
+  clearSelection();
+  await loadQuestions();
+}
+
+// Remover produto das selecionadas
+async function bulkDesvincular() {
+  if(!SEL_QS.size) return;
+  if(!confirm(`Remover produto de ${SEL_QS.size} questão(ões)?`)) return;
+  const {error} = await sb.from('questions').update({product_id:null}).in('id',[...SEL_QS]);
+  if(error) { showToast('Erro: '+error.message,'error'); return; }
+  showToast('✅ Produto removido das questões selecionadas','success');
+  clearSelection();
+  await loadQuestions();
+}
+
+// Vincular TODAS as questões de uma lei a um produto
+async function vincularPorLei() {
+  const lei = document.getElementById('bulk-lei-sel').value;
+  const prodId = document.getElementById('bulk-prod-lei').value;
+  if(!lei) { showToast('Selecione a lei','error'); return; }
+  if(!prodId) { showToast('Selecione o produto','error'); return; }
+  const prod = ALL_PROD.find(p=>p.id===prodId);
+  const qs = ALL_Q.filter(q=>q.lei===lei);
+  if(!qs.length) { showToast(`Nenhuma questão encontrada para "${lei}"`, 'error'); return; }
+  if(!confirm(`Vincular TODAS as ${qs.length} questão(ões) de "${lei}" ao produto "${prod?.name}"?
+
+Isso substituirá qualquer vínculo anterior.`)) return;
+  const ids = qs.map(q=>q.id);
+  const {error} = await sb.from('questions').update({product_id:prodId}).in('id',ids);
+  if(error) { showToast('Erro: '+error.message,'error'); return; }
+  showToast(`✅ ${qs.length} questão(ões) de "${lei}" vinculadas a "${prod?.name}"!`,'success');
+  await loadQuestions();
 }
 function filterQs(q){const f=ALL_Q.filter(x=>(x.lei||'').toLowerCase().includes(q.toLowerCase())||(x.enunciado||'').toLowerCase().includes(q.toLowerCase())||(x.artigo||'').toLowerCase().includes(q.toLowerCase()));renderQs(f);}
 
@@ -1204,7 +1344,19 @@ async function loadProducts(){
   if(sel)sel.innerHTML='<option value="">Livre (VMQ geral)</option>'+ALL_PROD.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('prod-tbody').innerHTML=ALL_PROD.map(p=>`
     <tr>
-      <td style="font-size:.74rem;font-family:monospace;color:var(--blue)">${p.id}</td>
+      <td style="font-size:.74rem;
+  // Populate bulk product selects
+  const prodOptions = '<option value="">Escolha o produto...</option>' + ALL_PROD.map(p=>`<option value="${p.id}">${p.name} — ${p.price_cents?'R$'+(p.price_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'grátis'}</option>`).join('');
+  ['bulk-prod-sel','bulk-prod-lei','q-filter-prod'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      if(id==='q-filter-prod'){
+        el.innerHTML='<option value="">Todos os produtos</option><option value="__none__">Sem produto (livres)</option>'+ALL_PROD.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+      } else {
+        el.innerHTML=prodOptions;
+      }
+    }
+  });font-family:monospace;color:var(--blue)">${p.id}</td>
       <td style="font-weight:500">${p.name}</td>
       <td><span class="badge b-bl">${p.type}</span></td>
       <td style="font-weight:600">${p.price_cents?'R$'+(p.price_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
