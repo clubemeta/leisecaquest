@@ -238,6 +238,11 @@ tr:hover td{background:#fafafa}
       </div>
 
       <div class="sb-sec">Conteúdo</div>
+      <div class="sb-item" id="nav-ai" onclick="goTo('ai')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M8 12h8M12 8v8"/></svg>
+        Gerador IA ✨
+        <span class="sb-cnt" style="background:#7c3aed;color:#fff">NEW</span>
+      </div>
       <div class="sb-item" id="nav-questions" onclick="goTo('questions')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
         Questões
@@ -489,6 +494,95 @@ tr:hover td{background:#fafafa}
             <tbody id="prod-tbody"></tbody></table>
           </div>
         </div>
+      </div>
+
+      <!-- GERADOR DE QUESTÕES COM IA -->
+      <div class="page" id="p-ai">
+
+        <!-- Config bar -->
+        <div class="card" style="margin-bottom:14px;padding:16px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
+            <div>
+              <label class="sinp-label">Produto / Concurso</label>
+              <select id="ai-product" class="ssel">
+                <option value="reta-final-tjce-2026">Reta Final TJ-CE 2026</option>
+              </select>
+            </div>
+            <div>
+              <label class="sinp-label">Lei / Disciplina</label>
+              <select id="ai-lei" class="ssel">
+                <option value="Constituição Federal/88">Constituição Federal/88</option>
+                <option value="Código Civil">Código Civil</option>
+                <option value="Código Penal">Código Penal</option>
+                <option value="Código de Processo Civil">Código de Processo Civil</option>
+                <option value="Código de Processo Penal">Código de Processo Penal</option>
+                <option value="Lei 8.112/90">Lei 8.112/90 — Estatuto Servidores</option>
+                <option value="Lei 14.133/21 - Nova Lei de Licitações">Lei 14.133/21 — Licitações</option>
+                <option value="Lei 8.429/92 - Improbidade Administrativa">Lei 8.429/92 — Improbidade (LIA)</option>
+                <option value="Lei 9.784/99 - Processo Administrativo">Lei 9.784/99 — Processo Adm.</option>
+                <option value="Lei 12.527/11 - Lei de Acesso à Informação">Lei 12.527/11 — LAI</option>
+                <option value="Lei 13.709/18 - LGPD">Lei 13.709/18 — LGPD</option>
+                <option value="Lei 13.869/19 - Abuso de Autoridade">Lei 13.869/19 — Abuso de Autoridade</option>
+                <option value="Lei 11.340/06 - Lei Maria da Penha">Lei 11.340/06 — Maria da Penha</option>
+                <option value="Lei 11.343/06 - Lei de Drogas">Lei 11.343/06 — Lei de Drogas</option>
+                <option value="Lei 9.613/98 - Lavagem de Dinheiro">Lei 9.613/98 — Lavagem de Dinheiro ⚠️</option>
+                <option value="Lei 7.210/84 - Lei de Execução Penal">Lei 7.210/84 — LEP ⚠️</option>
+                <option value="Lei 9.099/95 - Juizados Especiais">Lei 9.099/95 — Juizados Especiais ⚠️</option>
+                <option value="Lei 8.987/95 - Concessões">Lei 8.987/95 — Concessões</option>
+                <option value="Lei Estadual 16.397/17 - Organização Judiciária CE">Lei 16.397/17 — Org. Judiciária CE ⚠️</option>
+                <option value="Lei Estadual 9.826/74 - Estatuto CE">Lei 9.826/74 — Estatuto CE ⚠️</option>
+              </select>
+            </div>
+            <div>
+              <label class="sinp-label">Cargo-alvo</label>
+              <select id="ai-cargo" class="ssel">
+                <option value="Analista Judiciário">G07 — Analista Judiciário</option>
+                <option value="Oficial de Justiça">H08 — Oficial de Justiça</option>
+                <option value="Técnico Judiciário">I09 — Técnico Judiciário</option>
+              </select>
+            </div>
+            <div>
+              <label class="sinp-label">Qtd de questões</label>
+              <select id="ai-qty" class="ssel">
+                <option value="5">5 questões</option>
+                <option value="10" selected>10 questões</option>
+                <option value="20">20 questões</option>
+                <option value="30">30 questões</option>
+              </select>
+            </div>
+            <div>
+              <label class="sinp-label">% Falsas (gabarito F)</label>
+              <select id="ai-falso" class="ssel">
+                <option value="30">30% Falsas</option>
+                <option value="40" selected>40% Falsas</option>
+                <option value="50">50% Falsas</option>
+                <option value="60">60% Falsas</option>
+              </select>
+            </div>
+            <div>
+              <label class="sinp-label">Tema específico (opcional)</label>
+              <input id="ai-tema" class="sinp" placeholder="Ex: art. 37, prescrição, habeas corpus...">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button id="ai-gen-btn" class="btn btn-p" onclick="gerarQuestoes()" style="display:flex;align-items:center;gap:6px;padding:10px 20px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Gerar com IA
+            </button>
+            <button class="btn btn-s" onclick="aprovarTodas()" id="ai-approve-all" style="display:none">✅ Aprovar todas e salvar</button>
+            <button class="btn btn-s" onclick="document.getElementById('ai-results').innerHTML='';document.getElementById('ai-approve-all').style.display='none'" id="ai-clear" style="display:none">🗑 Limpar</button>
+            <span id="ai-status" style="font-size:.78rem;color:var(--muted)"></span>
+          </div>
+        </div>
+
+        <!-- Gap alert -->
+        <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:.8rem;color:#92400e">
+          <strong>⚠️ Leis com ⚠️ estão com poucas ou nenhuma questão no banco.</strong>
+          Gere pelo menos 15–20 questões de cada para cobrir o edital completamente.
+        </div>
+
+        <!-- Results -->
+        <div id="ai-results"></div>
       </div>
 
       <!-- BANNERS & OFERTAS -->
@@ -1049,7 +1143,7 @@ function showApp(user){
 async function adminLogout(){await sb.auth.signOut();location.reload();}
 
 // ── NAV ──
-const TITLES={overview:'Dashboard',revenue:'Receita',users:'Todos os alunos',trials:'Em trial',paid:'Pagantes',questions:'Questões',products:'Produtos',simulados:'Simulados',banners:'Banners & Ofertas',emails:'Templates de E-mail',broadcast:'Disparos',notifications:'Notificações push',pixels:'Pixels & Analytics',webhook:'Webhook Hotmart',settings:'Configurações'};
+const TITLES={overview:'Dashboard',revenue:'Receita',users:'Todos os alunos',trials:'Em trial',paid:'Pagantes',questions:'Questões',products:'Produtos',simulados:'Simulados',banners:'Banners & Ofertas',ai:'Gerador de Questões com IA ✨',emails:'Templates de E-mail',broadcast:'Disparos',notifications:'Notificações push',pixels:'Pixels & Analytics',webhook:'Webhook Hotmart',settings:'Configurações'};
 function goTo(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.getElementById('p-'+id).classList.add('show');
@@ -1058,6 +1152,7 @@ function goTo(id){
   document.getElementById('page-title').textContent=TITLES[id]||id;
   document.getElementById('tb-acts').innerHTML='';
   if(id==='banners')loadBannersAdmin();
+  if(id==='ai')initAIGen();
 }
 
 // ── LOAD ALL ──
@@ -1502,6 +1597,249 @@ async function saveProd(){
   showToast('Produto criado!','success');closeM('m-prod');loadProducts();
 }
 async function toggleProd(id,active){await sb.from('products').update({active:!active}).eq('id',id);loadProducts();}
+
+// ══════════════════════════════════════════
+// GERADOR DE QUESTÕES COM IA (Claude API)
+// ══════════════════════════════════════════
+var AI_GENERATED = [];
+
+function initAIGen(){
+  // populate products in select
+  const sel = document.getElementById('ai-product');
+  if(sel && ALL_PROD.length && ALL_PROD.length > 1){
+    sel.innerHTML = ALL_PROD.filter(p=>p.type==='reta_final').map(p=>
+      `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+}
+
+async function gerarQuestoes(){
+  const lei = document.getElementById('ai-lei').value;
+  const cargo = document.getElementById('ai-cargo').value;
+  const qty = parseInt(document.getElementById('ai-qty').value);
+  const pctFalso = parseInt(document.getElementById('ai-falso').value);
+  const tema = document.getElementById('ai-tema').value.trim();
+  const productId = document.getElementById('ai-product').value;
+
+  const btn = document.getElementById('ai-gen-btn');
+  const status = document.getElementById('ai-status');
+  const results = document.getElementById('ai-results');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando...';
+  status.textContent = 'Chamando Claude API...';
+  results.innerHTML = '';
+
+  const nFalso = Math.round(qty * pctFalso / 100);
+  const nVerd = qty - nFalso;
+
+  const systemPrompt = `Você é um especialista em questões de concursos públicos da área jurídica, com expertise em questões estilo FCC (Fundação Carlos Chagas) para o TJ-CE.
+
+Regras obrigatórias:
+1. Gere questões de Verdadeiro/Falso sobre artigos específicos da lei
+2. Cada questão deve referenciar um artigo concreto (ex: "Art. 5º, II", "Art. 37, caput")
+3. Questões VERDADEIRAS: reproduzem ou parafraseiam fielmente o texto legal
+4. Questões FALSAS: contêm erro sutil mas claro (número errado, palavra trocada, negação indevida)
+5. Justificativa: explica objetivamente o gabarito com referência ao dispositivo
+6. Estilo FCC: assertivo, sem pegadinhas de interpretação, foco na letra da lei
+7. Retorne APENAS JSON válido, sem markdown, sem texto fora do array
+
+Formato obrigatório (array JSON):
+[
+  {
+    "artigo": "Art. X",
+    "enunciado": "Texto da assertiva...",
+    "gabarito": 0,
+    "justificativa": "Correto. Art. X dispõe que..."
+  }
+]
+gabarito: 0 = Verdadeiro, 1 = Falso`;
+
+  const userPrompt = `Gere exatamente ${qty} questões sobre "${lei}" para o cargo de ${cargo} do TJ-CE 2026 (FCC).
+${tema ? `Foque especificamente em: ${tema}` : ''}
+Distribuição: ${nVerd} questões VERDADEIRAS (gabarito 0) e ${nFalso} questões FALSAS (gabarito 1).
+Varie os artigos abordados. Não repita o mesmo artigo.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{role:'user', content: userPrompt}]
+      })
+    });
+
+    if(!resp.ok){
+      const err = await resp.text();
+      throw new Error('API error '+resp.status+': '+err);
+    }
+
+    const data = await resp.json();
+    const raw = data.content.map(b=>b.text||'').join('');
+
+    // Parse JSON - strip markdown fences if present
+    const clean = raw.replace(/```json|```/g,'').trim();
+    let questoes;
+    try { questoes = JSON.parse(clean); }
+    catch(e){ throw new Error('JSON inválido: '+clean.slice(0,200)); }
+
+    if(!Array.isArray(questoes)) throw new Error('Resposta não é um array');
+
+    // Store with metadata
+    AI_GENERATED = questoes.map(q => ({
+      ...q,
+      lei: lei,
+      banca: 'FCC',
+      cargo: cargo,
+      ano: 2026,
+      concurso: 'Reta Final TJ-CE 2026',
+      tipo: 'vf',
+      active: true,
+      product_id: productId,
+      _approved: true
+    }));
+
+    renderAIResults(AI_GENERATED);
+    status.textContent = `✅ ${questoes.length} questões geradas!`;
+    document.getElementById('ai-approve-all').style.display = 'inline-flex';
+    document.getElementById('ai-clear').style.display = 'inline-flex';
+
+  } catch(e) {
+    status.textContent = '❌ Erro: ' + e.message;
+    results.innerHTML = `<div class="card" style="border-color:#fca5a5;background:#fee2e2;padding:16px">
+      <strong style="color:#991b1b">Erro ao gerar questões</strong>
+      <div style="font-size:.8rem;color:#b91c1c;margin-top:6px;font-family:monospace">${e.message}</div>
+    </div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Gerar com IA';
+  }
+}
+
+function renderAIResults(qs){
+  const el = document.getElementById('ai-results');
+  const vCount = qs.filter(q=>q.gabarito===0).length;
+  const fCount = qs.filter(q=>q.gabarito===1).length;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="font-size:.84rem;font-weight:700">${qs.length} questões geradas</div>
+      <span class="badge b-gr">✓ ${vCount} Verdadeiras</span>
+      <span class="badge b-or">✗ ${fCount} Falsas</span>
+      <div style="font-size:.75rem;color:var(--muted);margin-left:auto">Revise, edite e aprove individualmente ou clique em "Aprovar todas"</div>
+    </div>
+    ${qs.map((q,i) => `
+    <div class="card q-ai-card" id="qai-${i}" style="margin-bottom:10px;border-left:4px solid ${q.gabarito===0?'#16a34a':'#ea580c'}">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+          <span class="badge ${q.gabarito===0?'b-gr':'b-or'}" style="font-size:.7rem">${q.gabarito===0?'V':'F'}</span>
+          <span style="font-size:.7rem;color:var(--muted);text-align:center">#${i+1}</span>
+        </div>
+        <div style="flex:1">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-size:.74rem;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 8px;font-weight:600">${q.artigo||''}</span>
+            <span style="font-size:.72rem;color:var(--muted)">${q.lei||''}</span>
+            <span style="font-size:.72rem;color:var(--muted)">• ${q.cargo||''}</span>
+          </div>
+          <div style="font-size:.84rem;margin-bottom:8px;line-height:1.5" id="enun-${i}">${q.enunciado}</div>
+          <div style="font-size:.76rem;color:var(--muted);line-height:1.5;background:var(--surface2);border-radius:6px;padding:8px" id="just-${i}">${q.justificativa}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+          <button class="btn btn-s" style="padding:3px 8px;font-size:.7rem" onclick="editQAI(${i})" title="Editar">✏️</button>
+          <button class="btn btn-d" style="padding:3px 8px;font-size:.7rem;background:#fee2e2;color:#991b1b;border-color:#fca5a5" onclick="removeQAI(${i})" title="Remover">🗑</button>
+          <button class="btn" id="save-${i}" style="padding:3px 8px;font-size:.7rem;background:#dcfce7;color:#166534;border-color:#86efac" onclick="salvarUmaQAI(${i})" title="Salvar esta">💾</button>
+        </div>
+      </div>
+    </div>`).join('')}`;
+}
+
+function editQAI(i){
+  const q = AI_GENERATED[i];
+  const enun = document.getElementById('enun-'+i);
+  const just = document.getElementById('just-'+i);
+  if(enun.contentEditable === 'true'){
+    // Save
+    AI_GENERATED[i].enunciado = enun.innerText.trim();
+    AI_GENERATED[i].justificativa = just.innerText.trim();
+    enun.contentEditable = 'false'; just.contentEditable = 'false';
+    enun.style.outline = ''; just.style.outline = '';
+    showToast('Editado!','success');
+  } else {
+    enun.contentEditable = 'true'; just.contentEditable = 'true';
+    enun.style.outline = '2px solid #818cf8'; enun.focus();
+    just.style.outline = '2px solid #818cf8';
+  }
+}
+
+function removeQAI(i){
+  AI_GENERATED.splice(i,1);
+  renderAIResults(AI_GENERATED);
+  if(!AI_GENERATED.length){
+    document.getElementById('ai-approve-all').style.display='none';
+    document.getElementById('ai-clear').style.display='none';
+  }
+}
+
+async function salvarUmaQAI(i){
+  const q = AI_GENERATED[i];
+  const btn = document.getElementById('save-'+i);
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  try {
+    const {error} = await sb.from('questions').insert({
+      lei: q.lei, artigo: q.artigo, banca: q.banca, cargo: q.cargo,
+      ano: q.ano, concurso: q.concurso, enunciado: q.enunciado,
+      tipo: q.tipo, gabarito: q.gabarito, justificativa: q.justificativa,
+      active: true, product_id: q.product_id
+    });
+    if(error) throw error;
+    btn.textContent = '✅';
+    btn.style.background = '#16a34a'; btn.style.color = '#fff';
+    document.getElementById('qai-'+i).style.opacity = '0.5';
+    showToast('Questão salva!','success');
+  } catch(e){
+    btn.textContent = '❌'; btn.disabled = false;
+    showToast('Erro: '+e.message,'error');
+  }
+}
+
+async function aprovarTodas(){
+  if(!AI_GENERATED.length) return;
+  if(!confirm(`Salvar ${AI_GENERATED.length} questões no banco?`)) return;
+
+  const btn = document.getElementById('ai-approve-all');
+  btn.disabled = true; btn.textContent = '⏳ Salvando...';
+
+  const rows = AI_GENERATED.map(q => ({
+    lei: q.lei, artigo: q.artigo, banca: q.banca, cargo: q.cargo,
+    ano: q.ano, concurso: q.concurso, enunciado: q.enunciado,
+    tipo: q.tipo, gabarito: q.gabarito, justificativa: q.justificativa,
+    active: true, product_id: q.product_id
+  }));
+
+  try {
+    const {error} = await sb.from('questions').insert(rows);
+    if(error) throw error;
+    showToast(`✅ ${rows.length} questões salvas com sucesso!`,'success');
+    AI_GENERATED = [];
+    document.getElementById('ai-results').innerHTML = `
+      <div class="card" style="text-align:center;padding:32px;background:#f0fdf4;border-color:#86efac">
+        <div style="font-size:2rem">🎉</div>
+        <div style="font-weight:700;color:#166534;margin-top:8px">${rows.length} questões salvas!</div>
+        <div style="font-size:.8rem;color:#16a34a;margin-top:4px">Gere mais questões ou acesse a lista para verificar.</div>
+      </div>`;
+    btn.style.display = 'none';
+    document.getElementById('ai-clear').style.display = 'none';
+    document.getElementById('ai-status').textContent = '';
+    // Update count
+    loadQuestions();
+  } catch(e){
+    showToast('Erro: '+e.message,'error');
+    btn.disabled = false; btn.textContent = '✅ Aprovar todas e salvar';
+  }
+}
 
 // ── BANNERS ──
 let ALL_BANNERS=[];
