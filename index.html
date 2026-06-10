@@ -572,6 +572,8 @@ tr:last-child td{border-bottom:none}
             </div>
           </div>
         </div>
+        <!-- BANNER ZONE: dashboard -->
+        <div id="banner-zone-dash" style="margin-top:14px"></div>
       </div>
 
       <!-- VMQ -->
@@ -779,6 +781,8 @@ tr:last-child td{border-bottom:none}
 
       <!-- RETAS FINAIS -->
       <div class="page" id="p-retas">
+        <!-- BANNER ZONE: retas -->
+        <div id="banner-zone-retas" style="margin-bottom:12px"></div>
         <div class="rf-list" id="rf-list"></div>
       </div>
 
@@ -1078,7 +1082,39 @@ function updateProfileUI(){
   }
 }
 
-function hasAccess(feature){
+// ── PRODUTOS DO USUÁRIO (compras avulsas) ──
+var USER_PRODUCTS_IDS = new Set(); // product_ids que o usuário comprou
+var PRODUCTS_DATA = {};           // id -> produto (com hotmart_id)
+
+async function loadUserProducts(){
+  if(!USER||!sb)return;
+  // 1. Carregar produtos globais (para ter hotmart_id)
+  try{
+    const{data:prods}=await sb.from('products').select('id,name,type,hotmart_id,price_cents').eq('active',true);
+    (prods||[]).forEach(function(p){PRODUCTS_DATA[p.id]=p;});
+  }catch(e){}
+  // 2. Carregar produtos do usuário
+  try{
+    const{data:up}=await sb.from('user_products').select('product_id,expires_at').eq('user_id',USER.id);
+    USER_PRODUCTS_IDS=new Set();
+    (up||[]).forEach(function(u){
+      // Verificar expiração (null = vitalício)
+      if(!u.expires_at||new Date(u.expires_at)>new Date()){
+        USER_PRODUCTS_IDS.add(u.product_id);
+      }
+    });
+  }catch(e){}
+}
+
+function hasProductAccess(productId){
+  return USER_PRODUCTS_IDS.has(productId)||hasAccess('retas');
+}
+
+function getHotmartUrl(productId){
+  var p=PRODUCTS_DATA[productId];
+  if(p&&p.hotmart_id)return p.hotmart_id.startsWith('http')?p.hotmart_id:'https://go.hotmart.com/'+p.hotmart_id;
+  return null;
+}
   if(!PROFILE) return false;
   const p=PROFILE.plan;
   if(p==='ilimitada_vitalicia'||p==='ilimitada_anual') return true;
@@ -1100,13 +1136,16 @@ function hasAccess(feature){
 function initPlatform(){
   initChart();
   loadStats();
+  loadUserProducts().then(function(){renderRetas();renderMateriais();});
   loadQuestions();
   renderRanking();
   renderDiscs();
   renderRaioX();
   renderMateriais();
   renderRetas();
-  renderSimulados();
+  loadSimuladosFromDB();   // carrega do Supabase
+  loadCadernos();          // carrega cadernos do aluno
+  setTimeout(loadBanners, 800);
   navTo('desempenho');
 }
 
@@ -1148,6 +1187,11 @@ function navTo(id){
     if(bd&&!bd.classList.contains('open')){bd.classList.add('open');if(hd)hd.classList.add('open');}
   }
   closeSidebar();closeProfile();
+  // Re-render banners when navigating to relevant pages
+  if((id==='desempenho'||id==='retas')&&typeof BANNERS_CACHE!=='undefined'&&BANNERS_CACHE.length){
+    setTimeout(renderBannersAll,50);
+  }
+  if(id==='retas') renderRetas();
 }
 
 function toggleAcc(id){
@@ -1441,28 +1485,36 @@ function renderMateriais(){
 // ═══════════════════════════════════════════════
 // RETAS FINAIS
 // ═══════════════════════════════════════════════
+const RETAS_CONFIG=[
+  {id:'enam',      productId:'reta-final-enam',    name:'ENAM 2026.1',    sub:'Exame Nacional da Magistratura',       preco:'R$397'},
+  {id:'mpe-mt',    productId:'reta-final-mpe-mt',  name:'MPE-MT 2026',    sub:'Promotor de Justiça',                  preco:'R$397'},
+  {id:'tj-pe',     productId:'reta-final-tj-pe',   name:'TJ-PE 2026',     sub:'Juiz de Direito',                      preco:'R$397'},
+  {id:'tj-ba',     productId:'reta-final-tj-ba',   name:'TJ-BA 2026',     sub:'Juiz de Direito',                      preco:'R$397'},
+  {id:'enac',      productId:'reta-final-enac',    name:'ENAC',           sub:'Exame Nacional dos Cartórios',         preco:'R$397'},
+  {id:'prf',       productId:'reta-final-prf',     name:'PRF 2026',       sub:'Policial Rodoviário Federal',          preco:'R$397'},
+  {id:'sefaz-ce',  productId:'reta-final-sefaz-ce',name:'SEFAZ-CE 2026',  sub:'Auditor Fiscal',                       preco:'R$397'},
+  {id:'trt-sp',    productId:'reta-final-trt-sp',  name:'TRT-SP 2025',    sub:'Analista e Técnico',                   preco:'R$397'},
+  {id:'pc-df',     productId:'reta-final-pc-df',   name:'PC-DF',          sub:'Delegado de Polícia',                  preco:'R$397'},
+  {id:'tjce-2026', productId:'reta-final-tjce-2026',name:'TJ-CE 2026',    sub:'Analista e Técnico Judiciário',        preco:'R$397'},
+];
+
 function renderRetas(){
-  const retas=[
-    {id:'enam',name:'ENAM 2026.1',sub:'Exame Nacional da Magistratura',cat:'juridica'},
-    {id:'mpe-mt',name:'MPE-MT 2026',sub:'Promotor de Justiça',cat:'juridica'},
-    {id:'tj-pe',name:'TJ-PE 2026',sub:'Juiz de Direito',cat:'juridica'},
-    {id:'tj-ba',name:'TJ-BA 2026',sub:'Juiz de Direito',cat:'juridica'},
-    {id:'enac',name:'ENAC',sub:'Exame Nacional dos Cartórios',cat:'cartorio'},
-    {id:'prf',name:'PRF 2026',sub:'Policial Rodoviário Federal',cat:'policial'},
-    {id:'sefaz-ce',name:'SEFAZ-CE 2026',sub:'Auditor Fiscal',cat:'fiscal'},
-    {id:'trt-sp',name:'TRT-SP 2025',sub:'Analista e Técnico',cat:'trabalhista'},
-    {id:'pc-df',name:'PC-DF',sub:'Delegado de Polícia',cat:'policial'},
-    {id:'tjce-2026',name:'TJ-CE 2026',sub:'Analista e Técnico Judiciário',cat:'juridica'},
-  ];
-  const hasAll=hasAccess('retas');
-  document.getElementById('rf-list').innerHTML=retas.map(r=>{
-    const owned=hasAll;
-    return `<div class="rf-item ${owned?'owned-rf':'locked-rf'}" onclick="${owned?`openRetaFinal('${r.id}','${r.name}')`: "showUpsell('retas')"}">
+  var el=document.getElementById('rf-list');if(!el)return;
+  el.innerHTML=RETAS_CONFIG.map(function(r){
+    var owned=hasProductAccess(r.productId);
+    var hotmartUrl=getHotmartUrl(r.productId);
+    var buyAction=hotmartUrl
+      ? `window.open('${hotmartUrl}','_blank')`
+      : `showUpsell('retas')`;
+    var clickAction=owned
+      ? `openRetaFinal('${r.id}','${r.name}')`
+      : buyAction;
+    return `<div class="rf-item ${owned?'owned-rf':'locked-rf'}" onclick="${clickAction}" style="position:relative">
       <div class="rf-item-info">
         <div class="rf-item-name">${r.name}</div>
         <div class="rf-item-sub">${r.sub}</div>
       </div>
-      <span class="rf-tag ${owned?'owned':'lock'}">${owned?'✓ Acessar':'🔒 Comprar'}</span>
+      <span class="rf-tag ${owned?'owned':'lock'}">${owned?'✓ Acessar':'🛒 '+r.preco}</span>
     </div>`;
   }).join('')+`
   <div style="margin-top:12px;background:#f3e8ff;border:1px solid #d8b4fe;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -1504,34 +1556,216 @@ function openRetaFinal(id, name){
 // ═══════════════════════════════════════════════
 // SIMULADOS
 // ═══════════════════════════════════════════════
-function renderSimulados(){
-  const sims=[
-    {id:'trial',name:'(Amostra) Projeto LeisecaQuest - 1ª Semana',qs:10,free:true},
-    {id:'enam',name:'Simulado ENAM 2026.1',qs:80,free:false},
-    {id:'mpe-mt',name:'Simulado MPE-MT 2026',qs:60,free:false},
-    {id:'prf',name:'Simulado PRF 2026',qs:70,free:false},
-  ];
-  document.getElementById('sim-list').innerHTML=sims.map(s=>{
-    const can=s.free||hasAccess('simulados');
-    return `<div class="sim-item ${can?'':'locked'}" onclick="${can?`startSim('${s.id}',${s.qs})`:"showUpsell('simulados')"}">
-      <div>
-        <div class="sim-item-name">${s.name}</div>
-        <div class="sim-item-sub">${s.qs} questões • ${can?(s.free?'Gratuito':'Incluído no seu plano'):'Bloqueado'}</div>
-      </div>
-      <span class="sim-tag ${s.free?'free':can?'owned':'locked'}">${s.free?'Grátis':can?'Acessar':'🔒'}</span>
-    </div>`;
+// ════════════════════════════════════════
+// SIMULADOS — carrega do Supabase
+// ════════════════════════════════════════
+var simTimer=null, simState=null, ALL_SIMS_DB=[];
+
+async function loadSimuladosFromDB(){
+  var list=document.getElementById('sim-list');
+  if(list)list.innerHTML='<div style="text-align:center;padding:30px;color:var(--dim)">Carregando...</div>';
+  if(!window.sb){renderSimuladosDefault();return;}
+  var res=await window.sb.from('simulados').select('*').eq('active',true).order('is_trial',{ascending:false}).order('total_qs',{ascending:true});
+  ALL_SIMS_DB=(res.data||[]);
+  renderSims();
+}
+
+function renderSimuladosDefault(){
+  ALL_SIMS_DB=[
+    {id:'trial',name:'Trial — 10 questões (grátis)',total_qs:10,tempo_min:30,is_trial:true,product_id:null},
+    {id:'tjce',name:'Simulado Reta Final TJ-CE',total_qs:40,tempo_min:90,is_trial:false,product_id:'reta-final-tjce-2026'}
+  ];renderSims();
+}
+
+function renderSims(){
+  var list=document.getElementById('sim-list');if(!list)return;
+  if(!ALL_SIMS_DB.length){list.innerHTML='<div style="text-align:center;padding:30px;color:var(--dim)">Nenhum simulado disponível</div>';return;}
+  list.innerHTML=ALL_SIMS_DB.map(function(s){
+    var can=s.is_trial||hasAccess('simulados');
+    return '<div class="sim-item" onclick="'+(can?'startSimDB(\''+s.id+'\','+s.total_qs+',\''+(s.product_id||'')+'\','+(s.tempo_min||60)+')':"showUpsell('simulados')")+'">'
+      +'<div class="si-info"><div class="si-name">'+s.name+'</div>'
+      +'<div class="si-tags">'
+      +'<span class="si-tag" style="background:#1a9fd41a;color:#1a9fd4">'+s.total_qs+' questões</span>'
+      +'<span class="si-tag">'+(s.tempo_min||60)+' min</span>'
+      +(s.is_trial?'<span class="si-tag" style="background:#dcfce7;color:#166534">Grátis</span>':'')
+      +(s.product_id?'<span class="si-tag" style="background:#ede9fe;color:#6d28d9">Reta Final</span>':'')
+      +'</div></div>'
+      +'<div class="si-action '+(can?'':'locked')+'">'+(can?'▶ Iniciar':'🔒 Assinar')+'</div>'
+      +'</div>';
   }).join('');
 }
 
-function startSim(simId,total){
-  const simQs=QUESTIONS.slice(0,Math.min(total,QUESTIONS.length));
-  if(!simQs.length){alert('Sem questões disponíveis. Execute o schema SQL primeiro.');return;}
-  simState={id:simId,qs:simQs,curr:0,ans:{},startTime:Date.now(),totalTime:60*simQs.length};
+async function startSimDB(simId,total,productId,tempoMin){
+  if(!window.sb){alert('Erro de conexão');return;}
+  var listEl=document.getElementById('sim-list');
+  if(listEl)listEl.innerHTML='<div style="text-align:center;padding:30px;color:var(--dim)">⏳ Carregando '+total+' questões...</div>';
+  var q=window.sb.from('questions').select('id,enunciado,gabarito,justificativa,lei,artigo,tipo').eq('active',true);
+  if(productId)q=q.eq('product_id',productId);
+  var res=await q.limit(400);
+  var data=res.data||[];
+  if(!data.length){
+    if(listEl)listEl.innerHTML='<div style="text-align:center;padding:30px;color:var(--red)">❌ Sem questões disponíveis para este simulado</div>';
+    setTimeout(loadSimuladosFromDB,2000);return;
+  }
+  var pool=data.sort(function(){return Math.random()-.5;}).slice(0,Math.min(total,data.length));
+  _launchSim(pool,(tempoMin||60)*60);
+}
+
+function _launchSim(pool,tempoSecs){
+  simState={qs:pool,curr:0,ans:{},startTime:Date.now(),totalTime:tempoSecs};
   document.getElementById('sim-list').style.display='none';
   document.getElementById('sim-running').style.display='block';
   document.getElementById('sim-result').style.display='none';
   renderSimQ();
-  startTimer();
+  clearInterval(simTimer);
+  simTimer=setInterval(function(){
+    var rem=tempoSecs-Math.round((Date.now()-simState.startTime)/1000);
+    if(rem<=0){clearInterval(simTimer);finishSim();return;}
+    var m=Math.floor(rem/60),s=rem%60;
+    var el=document.getElementById('sim-timer');
+    if(el)el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  },1000);
+}
+
+// Manter compatibilidade com startSim antigo
+function renderSimulados(){loadSimuladosFromDB();}
+function startSim(simId,total){
+  var pool=(window.QUESTIONS||[]).slice(0,Math.min(total,window.QUESTIONS?window.QUESTIONS.length:0));
+  if(!pool.length){alert('Sem questões. Acesse o VMQ primeiro.');return;}
+  _launchSim(pool,total*60);
+}
+
+// ════════════════════════════════════════
+// CADERNOS
+// ════════════════════════════════════════
+var ALL_CADS=[], CURRENT_CAD=null;
+
+async function loadCadernos(){
+  if(!window.USER||!window.sb)return;
+  var res=await window.sb.from('cadernos').select('*').eq('user_id',window.USER.id).order('created_at',{ascending:false});
+  ALL_CADS=res.data||[];
+  renderCadGrid();
+}
+
+function renderCadGrid(){
+  var grid=document.getElementById('cad-grid');
+  var lbl=document.getElementById('cad-count-lbl');
+  if(!grid)return;
+  if(lbl)lbl.textContent=ALL_CADS.length+' caderno'+(ALL_CADS.length===1?'':'s');
+  if(!ALL_CADS.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--dim)"><div style="font-size:2rem;margin-bottom:8px">📚</div><div style="font-size:.85rem;font-weight:600;margin-bottom:4px">Nenhum caderno ainda</div><div style="font-size:.77rem">Clique em "Novo caderno" para começar</div></div>';
+    return;
+  }
+  grid.innerHTML=ALL_CADS.map(function(c){
+    return '<div style="background:#fff;border:1.5px solid var(--bd);border-radius:10px;padding:16px;cursor:pointer;transition:.15s" onclick="openCadDetalhe(\''+c.id+'\')" onmouseover="this.style.borderColor=\'var(--blue)\'" onmouseout="this.style.borderColor=\'var(--bd)\'"><div style="font-size:1.5rem;margin-bottom:8px">📚</div><div style="font-weight:700;font-size:.9rem;margin-bottom:4px">'+c.nome+'</div><div style="font-size:.72rem;color:var(--muted)">'+new Date(c.created_at).toLocaleDateString('pt-BR')+'</div></div>';
+  }).join('');
+}
+
+function openCadModal(fromQ){
+  var inp=document.getElementById('cad-nome-inp');if(inp)inp.value='';
+  document.getElementById('cad-modal').classList.add('show');
+  setTimeout(function(){if(inp)inp.focus();},200);
+  window._cadFromQ=!!fromQ;
+}
+function closeCadModal(){document.getElementById('cad-modal').classList.remove('show');}
+
+async function saveCad(){
+  var nome=(document.getElementById('cad-nome-inp').value||'').trim();
+  if(!nome){showFT('⚠️ Digite um nome para o caderno');return;}
+  if(!window.USER||!window.sb){showFT('❌ Faça login primeiro');return;}
+  var res=await window.sb.from('cadernos').insert({user_id:window.USER.id,nome:nome}).select().single();
+  if(res.error){showFT('Erro: '+res.error.message);return;}
+  closeCadModal();
+  ALL_CADS.unshift(res.data);
+  renderCadGrid();
+  showFT('📚 Caderno "'+nome+'" criado!');
+  if(window._cadFromQ&&window.FEAT_QID){
+    addQToSpecificCad(res.data.id,nome,window.FEAT_QID);
+  }
+}
+
+async function openCadDetalhe(cadId){
+  CURRENT_CAD=ALL_CADS.find(function(c){return c.id===cadId;});
+  if(!CURRENT_CAD)return;
+  document.getElementById('cad-lista-view').style.display='none';
+  document.getElementById('cad-detalhe-view').style.display='block';
+  document.getElementById('cad-detalhe-nome').textContent=CURRENT_CAD.nome;
+  var infoEl=document.getElementById('cad-detalhe-info');
+  if(infoEl)infoEl.textContent='Carregando questões...';
+  var res=await window.sb.from('caderno_questoes').select('question_id,added_at,questions(id,enunciado,gabarito,lei,artigo)').eq('caderno_id',cadId).order('added_at',{ascending:false});
+  var list=res.data||[];
+  if(infoEl)infoEl.textContent=list.length+' questão'+(list.length===1?'':'ões');
+  var el=document.getElementById('cad-q-list');
+  var emptyEl=document.getElementById('cad-empty-q');
+  if(!list.length){if(el)el.innerHTML='';if(emptyEl)emptyEl.style.display='block';return;}
+  if(emptyEl)emptyEl.style.display='none';
+  if(el)el.innerHTML=list.map(function(item){
+    var q=item.questions||{};
+    var isV=q.gabarito===0;
+    return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:8px"><div style="display:flex;align-items:flex-start;gap:10px">'
+      +'<span style="flex-shrink:0;font-size:.7rem;background:'+(isV?'#dcfce7':'#fee2e2')+';color:'+(isV?'#166534':'#991b1b')+';border-radius:4px;padding:2px 7px;font-weight:700">'+(isV?'V':'F')+'</span>'
+      +'<div style="flex:1"><div style="font-size:.73rem;color:var(--blue);margin-bottom:4px">'+(q.lei||'')+(q.artigo?' — '+q.artigo:'')+'</div>'
+      +'<div style="font-size:.83rem;line-height:1.5">'+(q.enunciado||'')+'</div></div>'
+      +'<button onclick="removeQFromCad(\''+item.question_id+'\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:1.1rem;flex-shrink:0;padding:0 2px" title="Remover do caderno">✕</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function closeCadDetalhe(){
+  CURRENT_CAD=null;
+  var l=document.getElementById('cad-lista-view');if(l)l.style.display='';
+  var d=document.getElementById('cad-detalhe-view');if(d)d.style.display='none';
+}
+
+async function removeQFromCad(qId){
+  if(!CURRENT_CAD||!window.sb)return;
+  await window.sb.from('caderno_questoes').delete().eq('caderno_id',CURRENT_CAD.id).eq('question_id',qId);
+  openCadDetalhe(CURRENT_CAD.id);
+  showFT('Questão removida do caderno');
+}
+
+async function deleteCad(){
+  if(!CURRENT_CAD||!confirm('Excluir o caderno "'+CURRENT_CAD.nome+'"? Isso removerá todas as questões do caderno.'))return;
+  await window.sb.from('cadernos').delete().eq('id',CURRENT_CAD.id);
+  ALL_CADS=ALL_CADS.filter(function(c){return c.id!==CURRENT_CAD.id;});
+  closeCadDetalhe();
+  showFT('🗑 Caderno excluído');
+}
+
+function openAddQModal(qId){
+  if(!window.USER){showUpsell('cadernos');return;}
+  window.FEAT_QID=qId;
+  var listEl=document.getElementById('add-q-cad-list');
+  if(!listEl)return;
+  if(!ALL_CADS.length){
+    listEl.innerHTML='<div style="text-align:center;color:var(--dim);font-size:.82rem;padding:14px">📚 Nenhum caderno criado ainda.<br>Crie um abaixo.</div>';
+  } else {
+    listEl.innerHTML=ALL_CADS.map(function(c){
+      return '<button onclick="addQToSpecificCad(\''+c.id+'\',\''+c.nome.replace(/'/g,"\\'")+'\')" style="width:100%;padding:10px 13px;border:1px solid var(--bd);border-radius:7px;background:#fff;cursor:pointer;text-align:left;font-size:.84rem;font-weight:500;display:flex;align-items:center;gap:8px;transition:.12s" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'#fff\'">📚 '+c.nome+'</button>';
+    }).join('');
+  }
+  document.getElementById('add-q-modal').classList.add('show');
+}
+function closeAddQModal(){document.getElementById('add-q-modal').classList.remove('show');}
+function openCadModalFromQ(){closeAddQModal();openCadModal(true);}
+
+async function addQToSpecificCad(cadId,cadNome,qId){
+  var useQId=qId||window.FEAT_QID;
+  if(!window.sb||!useQId)return;
+  closeAddQModal();
+  var res=await window.sb.from('caderno_questoes').insert({caderno_id:cadId,question_id:useQId});
+  if(res.error){
+    if(res.error.code==='23505'){showFT('📚 Questão já está neste caderno');return;}
+    showFT('Erro: '+res.error.message);return;
+  }
+  showFT('✅ Adicionado ao caderno "'+cadNome+'"');
+}
+
+function addQToCad(qId){
+  if(!window.USER){showUpsell('cadernos');return;}
+  window.FEAT_QID=qId;
+  if(!ALL_CADS.length){openCadModal(true);}
+  else{openAddQModal(qId);}
 }
 
 function renderSimQ(){
@@ -2089,13 +2323,6 @@ function showFT(msg){
   setTimeout(function(){t.style.opacity='0';t.style.transition='.3s';setTimeout(function(){t.remove();},300);},2200);
 }
 
-// ── ADICIONAR QUESTÃO AO CADERNO ──
-function addQToCad(qId){
-  if(!window.USER){showUpsell('cadernos');return;}
-  window.FEAT_QID=qId;
-  if(typeof openAddQModal==='function'){openAddQModal(qId);}
-  else{navTo('cadernos');showFT('📚 Abra um caderno e adicione a questão.');}
-}
 // ── BANNERS PROMOCIONAIS ──
 var BANNERS_CACHE=[];
 async function loadBanners(){
@@ -2133,23 +2360,47 @@ function buildBannerEl(b){
 }
 
 function renderBannersAll(){
+  if(!BANNERS_CACHE.length) return;
+  var plan=(window.PROFILE&&window.PROFILE.plan)||'free';
+
+  function shouldShow(b){
+    return !b.planos_alvo||b.planos_alvo.length===0||b.planos_alvo.includes(plan);
+  }
+
   // Dashboard
-  var dbBanners=getBannersFor('dashboard');
-  var dbEl=document.getElementById('dash-banners');
-  if(!dbEl){dbEl=document.createElement('div');dbEl.id='dash-banners';var dbg=document.getElementById('p-desempenho');if(dbg)dbg.appendChild(dbEl);}
-  dbEl.innerHTML='';dbBanners.forEach(function(b){dbEl.appendChild(buildBannerEl(b));});
+  var dashEl=document.getElementById('banner-zone-dash');
+  if(dashEl){
+    var dashBanners=BANNERS_CACHE.filter(function(b){
+      return shouldShow(b)&&(b.posicao==='todas'||b.posicao==='dashboard');
+    });
+    dashEl.innerHTML='';
+    dashBanners.forEach(function(b){dashEl.appendChild(buildBannerEl(b));});
+  }
 
-  // Questões
-  var qBanners=getBannersFor('questoes');
-  var qEl=document.getElementById('questoes-banners');
-  if(!qEl){qEl=document.createElement('div');qEl.id='questoes-banners';var qp=document.getElementById('vmq-banners-zone');if(qp)qp.appendChild(qEl);}
-  if(qEl){qEl.innerHTML='';qBanners.forEach(function(b){qEl.appendChild(buildBannerEl(b));});}
+  // Retas Finais
+  var retasEl=document.getElementById('banner-zone-retas');
+  if(retasEl){
+    var retasBanners=BANNERS_CACHE.filter(function(b){
+      return shouldShow(b)&&(b.posicao==='todas'||b.posicao==='retas');
+    });
+    retasEl.innerHTML='';
+    retasBanners.forEach(function(b){retasEl.appendChild(buildBannerEl(b));});
+  }
 
-  // Retas
-  var rBanners=getBannersFor('retas');
-  var rEl=document.getElementById('retas-banners');
-  if(!rEl){rEl=document.createElement('div');rEl.id='retas-banners';var rfList=document.getElementById('rf-list');if(rfList&&rfList.parentNode)rfList.parentNode.insertBefore(rEl,rfList);}
-  if(rEl){rEl.innerHTML='';rBanners.forEach(function(b){rEl.appendChild(buildBannerEl(b));});}
+  // Sidebar banner (todas as posições)
+  var sbEl=document.getElementById('banner-zone-sidebar');
+  if(sbEl){
+    var sbBanners=BANNERS_CACHE.filter(function(b){
+      return shouldShow(b)&&b.posicao==='sidebar';
+    });
+    sbEl.innerHTML='';
+    sbBanners.forEach(function(b){
+      var mini=buildBannerEl(b);
+      mini.style.margin='0';
+      mini.style.borderRadius='8px';
+      sbEl.appendChild(mini);
+    });
+  }
 }
 
 function refreshBannersOnPage(pagina){
