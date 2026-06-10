@@ -284,6 +284,11 @@ tr:hover td{background:#fafafa}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
         Webhook Hotmart
       </div>
+      <div class="sb-item" id="nav-nfe" onclick="goTo('nfe')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+        Nota Fiscal
+        <span class="sb-cnt" id="sb-nfe-cnt" style="background:#16a34a;display:none">0</span>
+      </div>
       <div class="sb-item" id="nav-settings" onclick="goTo('settings')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M2 12h2M20 12h2"/></svg>
         Configurações
@@ -976,6 +981,102 @@ DIREITO PENAL: Princípios aplicáveis ao Direito Penal. Aplicação da lei pena
       </div>
 
       <!-- SETTINGS -->
+      <!-- NOTA FISCAL -->
+      <div class="page" id="p-nfe">
+
+        <!-- Configuração -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-hd">
+            <div>
+              <div class="card-title">Configuração da Nota Fiscal</div>
+              <div style="font-size:.74rem;color:var(--muted);margin-top:2px">NFSe — Nota Fiscal de Serviços Eletrônica</div>
+            </div>
+            <button class="btn btn-p" onclick="saveNfeConfig()">💾 Salvar configuração</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;padding:16px 0 0">
+            <div>
+              <label class="sinp-label">Plataforma de NF</label>
+              <select id="nfe-provider" class="ssel" onchange="onNfeProviderChange()">
+                <option value="enotas">eNotas.io</option>
+                <option value="nfseio">NFSe.io</option>
+                <option value="omie">Omie</option>
+                <option value="manual">Manual (sem integração)</option>
+              </select>
+            </div>
+            <div>
+              <label class="sinp-label">API Key da plataforma</label>
+              <input id="nfe-apikey" class="sinp" type="password" placeholder="sk_live_...">
+            </div>
+            <div>
+              <label class="sinp-label">ID da Empresa (na plataforma)</label>
+              <input id="nfe-empresa-id" class="sinp" placeholder="empresa_abc123">
+            </div>
+            <div>
+              <label class="sinp-label">CNPJ</label>
+              <input id="nfe-cnpj" class="sinp" placeholder="00.000.000/0001-00">
+            </div>
+            <div>
+              <label class="sinp-label">Razão Social</label>
+              <input id="nfe-razao" class="sinp" placeholder="LeisecaQuest Ltda">
+            </div>
+            <div>
+              <label class="sinp-label">Alíquota ISS (%)</label>
+              <input id="nfe-iss" class="sinp" type="number" value="5" min="0" max="10" step="0.5">
+            </div>
+            <div>
+              <label class="sinp-label">Cód. Serviço (LC 116/2003)</label>
+              <input id="nfe-cod-servico" class="sinp" placeholder="1.01" value="1.01">
+            </div>
+            <div>
+              <label class="sinp-label">Ambiente</label>
+              <select id="nfe-ambiente" class="ssel">
+                <option value="homologacao">Homologação (teste)</option>
+                <option value="producao">Produção</option>
+              </select>
+            </div>
+          </div>
+          <div style="padding-top:12px">
+            <label class="sinp-label">Descrição do serviço na NF</label>
+            <input id="nfe-descricao" class="sinp" value="Licença de acesso a plataforma educacional de questões jurídicas">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px;background:var(--surface2);border-radius:8px">
+            <input type="checkbox" id="nfe-auto" style="width:16px;height:16px">
+            <label for="nfe-auto" style="font-size:.84rem;font-weight:500;cursor:pointer">Emissão automática após confirmação de pagamento no Hotmart</label>
+          </div>
+        </div>
+
+        <!-- Ações rápidas -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="loadInvoices()">🔄 Atualizar lista</button>
+          <button class="btn btn-s" onclick="testNfeConnection()">🔌 Testar conexão com a plataforma</button>
+          <span id="nfe-test-status" style="align-self:center;font-size:.78rem;color:var(--muted)"></span>
+        </div>
+
+        <!-- Pendentes -->
+        <div id="nfe-pending-banner" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:.82rem;color:#92400e;display:flex;align-items:center;gap:10px">
+          <span>⚠️</span>
+          <div>Há notas fiscais pendentes de emissão. <button onclick="emitirTodasPendentes()" class="btn btn-s" style="margin-left:8px;padding:3px 10px;font-size:.74rem">Emitir todas agora</button></div>
+        </div>
+
+        <!-- Lista de NFs -->
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title">Notas Fiscais</div>
+            <div style="display:flex;gap:6px">
+              <select id="nfe-filter" class="ssel" style="width:auto;padding:5px 8px;font-size:.78rem" onchange="loadInvoices()">
+                <option value="">Todos os status</option>
+                <option value="pending">Pendentes</option>
+                <option value="issued">Emitidas</option>
+                <option value="error">Com erro</option>
+              </select>
+            </div>
+          </div>
+          <div id="nfe-list" style="margin-top:12px">
+            <div style="text-align:center;padding:32px;color:var(--muted)">Carregando notas fiscais...</div>
+          </div>
+        </div>
+      </div>
+
       <div class="page" id="p-settings">
         <div class="card" style="max-width:560px">
           <div class="card-hd"><div class="card-title">Configurações gerais</div></div>
@@ -1194,7 +1295,7 @@ function showApp(user){
 async function adminLogout(){await sb.auth.signOut();location.reload();}
 
 // ── NAV ──
-const TITLES={overview:'Dashboard',revenue:'Receita',users:'Todos os alunos',trials:'Em trial',paid:'Pagantes',questions:'Questões',products:'Produtos',simulados:'Simulados',banners:'Banners & Ofertas',ai:'Gerador de Questões com IA ✨',emails:'Templates de E-mail',broadcast:'Disparos',notifications:'Notificações push',pixels:'Pixels & Analytics',webhook:'Webhook Hotmart',settings:'Configurações'};
+const TITLES={overview:'Dashboard',revenue:'Receita',users:'Todos os alunos',trials:'Em trial',paid:'Pagantes',questions:'Questões',products:'Produtos',simulados:'Simulados',banners:'Banners & Ofertas',ai:'Gerador de Questões com IA ✨',nfe:'Nota Fiscal',emails:'Templates de E-mail',broadcast:'Disparos',notifications:'Notificações push',pixels:'Pixels & Analytics',webhook:'Webhook Hotmart',settings:'Configurações'};
 function goTo(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.getElementById('p-'+id).classList.add('show');
@@ -1204,6 +1305,7 @@ function goTo(id){
   document.getElementById('tb-acts').innerHTML='';
   if(id==='banners')loadBannersAdmin();
   if(id==='ai')initAIGen();
+  if(id==='nfe'){loadNfeConfig();loadInvoices();}
 }
 
 // ── LOAD ALL ──
@@ -1966,6 +2068,316 @@ async function aprovarTodas(){
     showToast('Erro: '+e.message,'error');
     btn.disabled = false; btn.textContent = '✅ Aprovar todas e salvar';
   }
+}
+
+// ══════════════════════════════════════════
+// NOTA FISCAL (NFSe)
+// ══════════════════════════════════════════
+var NFE_CONFIG = {};
+
+async function loadNfeConfig(){
+  const {data} = await sb.from('nfe_config').select('*').limit(1).single().catch(()=>({data:null}));
+  if(!data) return;
+  NFE_CONFIG = data;
+  document.getElementById('nfe-provider').value = data.provider||'enotas';
+  document.getElementById('nfe-apikey').value = data.api_key||'';
+  document.getElementById('nfe-empresa-id').value = data.empresa_id||'';
+  document.getElementById('nfe-cnpj').value = data.cnpj||'';
+  document.getElementById('nfe-razao').value = data.razao_social||'';
+  document.getElementById('nfe-iss').value = data.aliquota_iss||5;
+  document.getElementById('nfe-cod-servico').value = data.servico_codigo||'1.01';
+  document.getElementById('nfe-descricao').value = data.servico_descricao||'';
+  document.getElementById('nfe-ambiente').value = data.ambiente||'homologacao';
+  document.getElementById('nfe-auto').checked = !!data.emissao_automatica;
+}
+
+async function saveNfeConfig(){
+  const config = {
+    provider: document.getElementById('nfe-provider').value,
+    api_key: document.getElementById('nfe-apikey').value,
+    empresa_id: document.getElementById('nfe-empresa-id').value,
+    cnpj: document.getElementById('nfe-cnpj').value,
+    razao_social: document.getElementById('nfe-razao').value,
+    aliquota_iss: parseFloat(document.getElementById('nfe-iss').value)||5,
+    servico_codigo: document.getElementById('nfe-cod-servico').value,
+    servico_descricao: document.getElementById('nfe-descricao').value,
+    ambiente: document.getElementById('nfe-ambiente').value,
+    emissao_automatica: document.getElementById('nfe-auto').checked
+  };
+  const existing = await sb.from('nfe_config').select('id').limit(1).single().catch(()=>({data:null}));
+  let err;
+  if(existing.data){
+    ({error:err} = await sb.from('nfe_config').update(config).eq('id',existing.data.id));
+  } else {
+    ({error:err} = await sb.from('nfe_config').insert(config));
+  }
+  if(err){showToast('Erro ao salvar: '+err.message,'error');return;}
+  NFE_CONFIG = config;
+  showToast('✅ Configuração salva!','success');
+}
+
+async function testNfeConnection(){
+  const statusEl = document.getElementById('nfe-test-status');
+  statusEl.textContent = '⏳ Testando...';
+  const provider = document.getElementById('nfe-provider').value;
+  const apiKey = document.getElementById('nfe-apikey').value;
+  if(provider === 'manual'){statusEl.textContent = '✅ Modo manual — sem integração';return;}
+  if(!apiKey){statusEl.textContent = '❌ Configure a API Key primeiro';return;}
+  // Test eNotas connection
+  try {
+    const endpoints = {
+      enotas: 'https://api.enotas.com.br/v1/empresas',
+      nfseio: 'https://api.nfse.io/companies'
+    };
+    const url = endpoints[provider];
+    if(!url){statusEl.textContent = '✅ Provedor configurado (validação manual)';return;}
+    const r = await fetch(url, {headers:{'Authorization':'Basic '+btoa(apiKey+':')}});
+    if(r.ok){statusEl.textContent = '✅ Conexão OK — API válida!';}
+    else{statusEl.textContent = '❌ API Key inválida (HTTP '+r.status+')';}
+  } catch(e){
+    statusEl.textContent = '❌ Erro de conexão: '+e.message;
+  }
+}
+
+function onNfeProviderChange(){
+  const p = document.getElementById('nfe-provider').value;
+  const help = {
+    enotas: 'eNotas.io — plataforma popular para NFSe em todo o Brasil',
+    nfseio: 'NFSe.io — integração direta com prefeituras',
+    omie: 'Omie ERP — sistema de gestão com emissão de NF',
+    manual: 'Emissão manual — você emite na prefeitura e registra aqui'
+  };
+  showToast(help[p]||'','info');
+}
+
+async function loadInvoices(){
+  const status = document.getElementById('nfe-filter')?.value||'';
+  let q = sb.from('invoices').select('*,profiles(name,email)').order('created_at',{ascending:false}).limit(50);
+  if(status) q = q.eq('status',status);
+  const {data,error} = await q;
+  const list = document.getElementById('nfe-list');
+  const pending = document.getElementById('nfe-pending-banner');
+
+  if(error){list.innerHTML='<div style="color:var(--red);padding:16px">Erro: '+error.message+'</div>';return;}
+  const invoices = data||[];
+
+  // Count pending
+  const pendingCount = invoices.filter(i=>i.status==='pending').length;
+  if(pending){pending.style.display=pendingCount?'flex':'none';}
+  const cntEl=document.getElementById('sb-nfe-cnt');
+  if(cntEl){cntEl.textContent=pendingCount;cntEl.style.display=pendingCount?'inline':'none';}
+
+  if(!invoices.length){list.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)">Nenhuma nota fiscal encontrada.</div>';return;}
+
+  const statusColors = {pending:'#f59e0b',processing:'#3b82f6',issued:'#16a34a',error:'#dc2626',cancelled:'#6b7280'};
+  const statusLabels = {pending:'⏳ Pendente',processing:'🔄 Processando',issued:'✅ Emitida',error:'❌ Erro',cancelled:'🚫 Cancelada'};
+
+  list.innerHTML = invoices.map(inv => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-size:.85rem;font-weight:600">${inv.customer_name||'—'}</div>
+        <div style="font-size:.75rem;color:var(--muted)">${inv.customer_email||''} ${inv.customer_cpf_cnpj?'• '+inv.customer_cpf_cnpj:''}</div>
+        <div style="font-size:.74rem;color:var(--muted);margin-top:2px">${inv.product_id||''} • ${new Date(inv.created_at).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div style="text-align:right;min-width:100px">
+        <div style="font-size:.9rem;font-weight:700">R$${(inv.amount_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+        <span style="font-size:.72rem;font-weight:600;color:${statusColors[inv.status]}">${statusLabels[inv.status]||inv.status}</span>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+        ${inv.status==='issued'&&inv.nfe_pdf_url?`<a href="${inv.nfe_pdf_url}" target="_blank" class="btn btn-s" style="padding:3px 8px;font-size:.72rem">📄 PDF</a>`:''}
+        ${inv.status==='pending'?`<button class="btn btn-p" onclick="emitirNF('${inv.id}')" style="padding:3px 8px;font-size:.72rem">📤 Emitir</button>`:''}
+        ${inv.status==='error'?`<button class="btn btn-d" onclick="emitirNF('${inv.id}')" style="padding:3px 8px;font-size:.72rem">🔄 Tentar novamente</button>`:''}
+        <button class="btn btn-s" onclick="verDetalheNF('${inv.id}')" style="padding:3px 8px;font-size:.72rem">👁</button>
+      </div>
+      ${inv.error_message?`<div style="width:100%;font-size:.72rem;color:#dc2626;background:#fee2e2;border-radius:4px;padding:4px 8px">${inv.error_message}</div>`:''}
+    </div>`).join('');
+}
+
+async function emitirNF(invoiceId){
+  const inv = await sb.from('invoices').select('*').eq('id',invoiceId).single();
+  if(inv.error){showToast('NF não encontrada','error');return;}
+  const i = inv.data;
+  const provider = NFE_CONFIG.provider||'manual';
+
+  if(provider==='manual'){
+    // Modo manual: apenas marcar como emitida
+    const numero = prompt('Digite o número da nota fiscal emitida:','');
+    if(!numero)return;
+    await sb.from('invoices').update({
+      status:'issued', nfe_number:numero, issued_at: new Date().toISOString()
+    }).eq('id',invoiceId);
+    showToast('✅ NF registrada manualmente!','success');
+    loadInvoices();
+    return;
+  }
+
+  // Emissão via API (eNotas como exemplo)
+  if(!NFE_CONFIG.api_key||!NFE_CONFIG.empresa_id){
+    showToast('Configure a API Key e ID da empresa primeiro!','error');
+    return;
+  }
+
+  // Atualizar status para processing
+  await sb.from('invoices').update({status:'processing'}).eq('id',invoiceId);
+  showToast('⏳ Emitindo nota fiscal...','info');
+  loadInvoices();
+
+  try {
+    // Chamada para eNotas (exemplo de integração)
+    const payload = {
+      ambienteTeste: NFE_CONFIG.ambiente==='homologacao',
+      exibirNaConsultaPublica: true,
+      naturezaOperacao: 'Tributação no município',
+      dataEmissao: new Date().toISOString().split('T')[0],
+      prestador: {
+        cnpj: NFE_CONFIG.cnpj?.replace(/\D/g,''),
+        inscricaoMunicipal: NFE_CONFIG.inscricao_municipal||'',
+      },
+      tomador: {
+        cpfCnpj: i.customer_cpf_cnpj?.replace(/\D/g,'')||'',
+        razaoSocial: i.customer_name,
+        email: i.customer_email,
+        endereco: {
+          cep: i.customer_cep?.replace(/\D/g,'')||'',
+          logradouro: i.customer_address||'',
+          cidade: i.customer_city||'',
+          estado: i.customer_state||''
+        }
+      },
+      servico: {
+        valor: i.amount_cents/100,
+        discriminacao: NFE_CONFIG.servico_descricao||'Licença de software educacional',
+        codigoTributacaoMunicipio: NFE_CONFIG.servico_codigo||'1.01',
+        aliquota: (NFE_CONFIG.aliquota_iss||5)/100
+      }
+    };
+
+    const resp = await fetch(
+      `https://api.enotas.com.br/v1/empresas/${NFE_CONFIG.empresa_id}/nfse`,
+      {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':'Basic '+btoa(NFE_CONFIG.api_key+':')
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    const result = await resp.json();
+    if(resp.ok && result.id){
+      await sb.from('invoices').update({
+        status:'issued',
+        nfe_id: result.id,
+        nfe_number: result.numero||String(result.id),
+        nfe_pdf_url: result.linkDownloadPDF||result.linkPDF||null,
+        nfe_url: result.linkDownloadXML||null,
+        issued_at: new Date().toISOString()
+      }).eq('id',invoiceId);
+      showToast('✅ Nota fiscal emitida com sucesso!','success');
+    } else {
+      throw new Error(result.message||result.error||'Erro desconhecido na API');
+    }
+  } catch(e){
+    await sb.from('invoices').update({
+      status:'error', error_message: e.message
+    }).eq('id',invoiceId);
+    showToast('❌ Erro: '+e.message,'error');
+  }
+  loadInvoices();
+}
+
+async function emitirTodasPendentes(){
+  const {data} = await sb.from('invoices').select('id').eq('status','pending');
+  if(!data||!data.length){showToast('Sem notas pendentes','info');return;}
+  if(!confirm(`Emitir ${data.length} notas fiscais pendentes?`))return;
+  for(const inv of data){
+    await emitirNF(inv.id);
+    await new Promise(r=>setTimeout(r,500)); // rate limit
+  }
+  showToast(`✅ ${data.length} notas processadas!`,'success');
+  loadInvoices();
+}
+
+async function criarInvoice(userId, productId, customerName, customerEmail, customerCpfCnpj, amountCents){
+  // Chamada interna para criar NF após pagamento Hotmart
+  const {data,error} = await sb.from('invoices').insert({
+    user_id: userId,
+    product_id: productId,
+    customer_name: customerName,
+    customer_email: customerEmail,
+    customer_cpf_cnpj: customerCpfCnpj||null,
+    amount_cents: amountCents,
+    status: 'pending'
+  }).select().single();
+  if(error){console.error('Erro ao criar invoice:',error);return null;}
+  // Se emissão automática, emitir imediatamente
+  if(NFE_CONFIG.emissao_automatica){
+    await emitirNF(data.id);
+  }
+  return data;
+}
+
+function verDetalheNF(invoiceId){
+  sb.from('invoices').select('*').eq('id',invoiceId).single().then(({data:inv})=>{
+    if(!inv)return;
+    var m=document.createElement('div');
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:center;justify-content:center';
+    m.onclick=function(e){if(e.target===m)m.remove();};
+    m.innerHTML='<div style="background:#fff;border-radius:12px;padding:20px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+      +'<h3 style="font-size:.95rem;font-weight:700">Detalhes da Nota Fiscal</h3>'
+      +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#9ca3af">✕</button>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;font-size:.82rem">'
+      +`<div><strong>Cliente:</strong> ${inv.customer_name}</div>`
+      +`<div><strong>Email:</strong> ${inv.customer_email}</div>`
+      +`<div><strong>CPF/CNPJ:</strong> ${inv.customer_cpf_cnpj||'—'}</div>`
+      +`<div><strong>Produto:</strong> ${inv.product_id}</div>`
+      +`<div><strong>Valor:</strong> R$${(inv.amount_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`
+      +`<div><strong>Status:</strong> ${inv.status}</div>`
+      +`<div><strong>Número NF:</strong> ${inv.nfe_number||'—'}</div>`
+      +`<div><strong>Emitida em:</strong> ${inv.issued_at?new Date(inv.issued_at).toLocaleString('pt-BR'):'—'}</div>`
+      +(inv.nfe_pdf_url?`<a href="${inv.nfe_pdf_url}" target="_blank" style="color:#1a9fd4">📄 Download PDF da NF</a>`:'')
+      +(inv.error_message?`<div style="color:#dc2626;background:#fee2e2;padding:8px;border-radius:6px"><strong>Erro:</strong> ${inv.error_message}</div>`:'')
+      +'</div></div>';
+    document.body.appendChild(m);
+  });
+}
+
+// Função para ser chamada pelo webhook Hotmart após pagamento
+async function processar_pagamento_hotmart(payload){
+  // payload = dados recebidos do webhook Hotmart
+  const {
+    data: {
+      buyer: {name:buyerName, email:buyerEmail, document:buyerDoc},
+      product: {id:productHotmartId},
+      purchase: {price:{value:amount}, transaction}
+    }
+  } = payload;
+
+  // Encontrar o produto correspondente
+  const {data:product} = await sb.from('products').select('id,name').eq('hotmart_id',productHotmartId).single();
+  if(!product){console.error('Produto Hotmart não encontrado:',productHotmartId);return;}
+
+  // Encontrar ou criar o usuário pelo email
+  let userId = null;
+  const {data:profile} = await sb.from('profiles').select('id').eq('email',buyerEmail).single().catch(()=>({data:null}));
+  if(profile) userId = profile.id;
+
+  // Criar registro de acesso ao produto
+  await sb.from('user_products').upsert({
+    user_id: userId,
+    product_id: product.id,
+    expires_at: new Date(Date.now() + 365*24*60*60*1000).toISOString(),
+    purchased_at: new Date().toISOString()
+  }).catch(()=>{});
+
+  // Criar e emitir nota fiscal
+  await criarInvoice(
+    userId, product.id, buyerName, buyerEmail,
+    buyerDoc, Math.round(amount*100)
+  );
 }
 
 // ── BANNERS ──
