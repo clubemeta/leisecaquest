@@ -1344,7 +1344,15 @@ async function loadProducts(){
   if(sel)sel.innerHTML='<option value="">Livre (VMQ geral)</option>'+ALL_PROD.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   document.getElementById('prod-tbody').innerHTML=ALL_PROD.map(p=>`
     <tr>
-      <td style="font-size:.74rem;
+      <td style="font-size:.74rem;font-family:monospace;color:var(--blue)">${p.id}</td>
+      <td style="font-weight:500">${p.name}</td>
+      <td><span class="badge b-bl">${p.type}</span></td>
+      <td style="font-weight:600">${p.price_cents?'R$'+(p.price_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+      <td style="font-size:.74rem;color:var(--muted)">${p.hotmart_id||'—'}</td>
+      <td>—</td>
+      <td><span class="badge ${p.active?'b-gr':'b-gy'}">${p.active?'Ativo':'Inativo'}</span></td>
+      <td><button class="btn btn-d" style="padding:3px 8px;font-size:.7rem" onclick="toggleProd('${p.id}',${p.active})">${p.active?'Desativar':'Ativar'}</button></td>
+    </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--dim)">Nenhum produto</td></tr>';
   // Populate bulk product selects
   const prodOptions = '<option value="">Escolha o produto...</option>' + ALL_PROD.map(p=>`<option value="${p.id}">${p.name} — ${p.price_cents?'R$'+(p.price_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'grátis'}</option>`).join('');
   ['bulk-prod-sel','bulk-prod-lei','q-filter-prod'].forEach(id=>{
@@ -1356,15 +1364,7 @@ async function loadProducts(){
         el.innerHTML=prodOptions;
       }
     }
-  });font-family:monospace;color:var(--blue)">${p.id}</td>
-      <td style="font-weight:500">${p.name}</td>
-      <td><span class="badge b-bl">${p.type}</span></td>
-      <td style="font-weight:600">${p.price_cents?'R$'+(p.price_cents/100).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
-      <td style="font-size:.74rem;color:var(--muted)">${p.hotmart_id||'—'}</td>
-      <td>—</td>
-      <td><span class="badge ${p.active?'b-gr':'b-gy'}">${p.active?'Ativo':'Inativo'}</span></td>
-      <td><button class="btn btn-d" style="padding:3px 8px;font-size:.7rem" onclick="toggleProd('${p.id}',${p.active})">${p.active?'Desativar':'Ativar'}</button></td>
-    </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--dim)">Nenhum produto</td></tr>';
+  });
 }
 function openAddProd(){document.getElementById('m-prod').classList.add('show');}
 async function saveProd(){
