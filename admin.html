@@ -503,15 +503,35 @@ tr:hover td{background:#fafafa}
 
       <!-- GERADOR DE QUESTÕES COM IA -->
       <div class="page" id="p-ai">
+        <!-- BANNER: API KEY não configurada -->
+        <div id="ai-apikey-banner" style="display:none;background:#fef3c7;border:1.5px solid #fde68a;border-radius:10px;padding:14px 16px;margin-bottom:14px">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <span style="font-size:1.4rem">⚠️</span>
+            <div>
+              <div style="font-size:.9rem;font-weight:600;color:#92400e;margin-bottom:4px">Chave API do Claude não configurada</div>
+              <div style="font-size:.8rem;color:#b45309;line-height:1.6">Para usar o Gerador IA e fazer upload de PDF de editais, você precisa cadastrar sua chave API do Claude nas configurações.<br>
+              <strong>Como obter:</strong> acesse <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#1a9fd4">console.anthropic.com/settings/keys</a> → crie uma chave → copie (começa com <code>sk-ant-api03-...</code>)</div>
+              <button class="btn btn-p" onclick="goTo('settings')" style="margin-top:8px;font-size:.78rem">⚙️ Ir para Configurações e cadastrar chave</button>
+            </div>
+          </div>
+        </div>
 
-        <!-- Config bar -->
+        <!-- API Key Warning -->
+        <div id="ai-key-warning" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:.82rem;color:#92400e;align-items:center;gap:10px">
+          <span style="font-size:1.2rem">🔑</span>
+          <div style="flex:1">
+            <strong>Chave API não configurada.</strong> O Gerador IA precisa da sua chave da Anthropic para funcionar.
+          </div>
+          <button class="btn btn-p" onclick="goTo('settings')" style="font-size:.74rem;padding:4px 12px;flex-shrink:0">Configurar agora →</button>
+        </div>
         <div class="card" style="margin-bottom:14px;padding:16px">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
             <div>
               <label class="sinp-label">Produto / Concurso</label>
-              <select id="ai-product" class="ssel">
+              <select id="ai-product" class="ssel" onchange="onProductChange(this.value)">
                 <option value="reta-final-tjce-2026">Reta Final TJ-CE 2026</option>
                 <option value="reta-final-enam-2026">Reta Final ENAM 2026.1</option>
+                <option value="pc-ap-2017">PC-AP 2017 — Delegado/Agente/Oficial</option>
               </select>
             </div>
             <div>
@@ -545,7 +565,18 @@ tr:hover td{background:#fafafa}
                   <option value="Lei Estadual 16.397/17 - Organização Judiciária CE">Lei 16.397/17 — Org. Judiciária CE</option>
                   <option value="Lei Estadual 9.826/74 - Estatuto CE">Lei 9.826/74 — Estatuto CE</option>
                 </optgroup>
-                <optgroup label="── ENAM (FGV · Múltipla Escolha) ──">
+                <optgroup label="── PC-AP 2017 (FCC · MC 5 alt.) ──">
+                  <option value="Direito Penal">Direito Penal — PC-AP</option>
+                  <option value="Direito Processual Penal">Dir. Processual Penal — PC-AP</option>
+                  <option value="Direito Constitucional">Direito Constitucional — PC-AP</option>
+                  <option value="Direito Administrativo">Direito Administrativo — PC-AP</option>
+                  <option value="Língua Portuguesa">Língua Portuguesa — PC-AP</option>
+                  <option value="Lei 0883/2005 - Lei Orgânica PC-AP">Lei 0883/2005 — Org. Polícia Civil AP</option>
+                  <option value="Lei 066/1993 - Estatuto Servidores AP">Lei 066/1993 — Estatuto Servidores AP</option>
+                  <option value="Informática">Informática — PC-AP</option>
+                  <option value="Atualidades">Atualidades — PC-AP</option>
+                  <option value="História e Geografia do Amapá">Hist. e Geog. do Amapá</option>
+                </optgroup>
                   <option value="Direito Constitucional">Dir. Constitucional — 20% (16q)</option>
                   <option value="Direito Penal">Direito Penal — 15% (12q)</option>
                   <option value="Direito Civil">Direito Civil — 15% (12q)</option>
@@ -555,14 +586,30 @@ tr:hover td{background:#fafafa}
                   <option value="Direito Empresarial">Dir. Empresarial — 7,5% (6q)</option>
                   <option value="Formação Humanística">Formação Humanística — 7,5% (6q)</option>
                 </optgroup>
+                <optgroup label="── PC-AP 2017 (FCC · V/F) ──">
+                  <option value="Língua Portuguesa">Língua Portuguesa</option>
+                  <option value="Noções de Direito Administrativo">Noções de Direito Administrativo</option>
+                  <option value="Noções de Direito Constitucional">Noções de Direito Constitucional</option>
+                  <option value="Noções de Direito Penal">Noções de Direito Penal</option>
+                  <option value="Noções de Direito Processual Penal">Noções de Dir. Processual Penal</option>
+                  <option value="Leis Específicas do Amapá">Leis Específicas do Amapá (Lei 883/2005)</option>
+                  <option value="Direito Administrativo Delegado">Dir. Administrativo (Delegado)</option>
+                  <option value="Direito Constitucional Delegado">Dir. Constitucional (Delegado)</option>
+                  <option value="Direito Penal Delegado">Dir. Penal (Delegado)</option>
+                  <option value="Direito Processual Penal Delegado">Dir. Proc. Penal (Delegado)</option>
+                  <option value="História e Geografia do Amapá">História e Geografia do Amapá</option>
+                </optgroup>
               </select>
             </div>
             <div>
               <label class="sinp-label">Cargo-alvo</label>
               <select id="ai-cargo" class="ssel">
-                <option value="Analista Judiciário">G07 — Analista Judiciário</option>
-                <option value="Oficial de Justiça">H08 — Oficial de Justiça</option>
-                <option value="Técnico Judiciário">I09 — Técnico Judiciário</option>
+                <option value="Magistratura">Magistratura (ENAM)</option>
+                <option value="Delegado de Polícia Civil">Delegado de Polícia Civil</option>
+                <option value="Agente de Polícia Civil">Agente de Polícia Civil</option>
+                <option value="Oficial de Polícia Civil">Oficial de Polícia Civil</option>
+                <option value="Analista Judiciário">Analista Judiciário</option>
+                <option value="Técnico Judiciário">Técnico Judiciário</option>
               </select>
             </div>
             <div>
@@ -574,7 +621,7 @@ tr:hover td{background:#fafafa}
                 <option value="30">30 questões</option>
               </select>
             </div>
-            <div>
+            <div id="ai-falso-row">
               <label class="sinp-label">% Falsas (gabarito F)</label>
               <select id="ai-falso" class="ssel">
                 <option value="30">30% Falsas</option>
@@ -1078,6 +1125,30 @@ DIREITO PENAL: Princípios aplicáveis ao Direito Penal. Aplicação da lei pena
       </div>
 
       <div class="page" id="p-settings">
+        <div class="card" style="max-width:560px;margin-bottom:16px">
+          <div class="card-hd"><div class="card-title">🤖 Claude API — Gerador de Questões</div></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+            <div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:12px 14px;font-size:.8rem;color:#27500A">
+              <strong>🤖 O Gerador IA e o upload de PDF de editais precisam de uma chave API da Anthropic.</strong><br>
+              <div style="margin-top:8px;line-height:1.8">
+                <strong>Passo 1:</strong> Acesse <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#185FA5;font-weight:600">console.anthropic.com/settings/keys</a><br>
+                <strong>Passo 2:</strong> Clique em "Create Key" → dê um nome → copie a chave<br>
+                <strong>Passo 3:</strong> Cole abaixo e clique em "Salvar chave"<br>
+                <strong>Passo 4:</strong> Volte ao Gerador IA — o banner de aviso vai sumir ✅
+              </div>
+              <div style="margin-top:8px;font-size:.75rem;color:#3B6D11">⚠️ A chave fica salva <strong>apenas no seu navegador</strong> (localStorage). Cada admin que usar o painel precisa configurar a sua própria chave.</div>
+            </div>
+            <div class="fg">
+              <label>Chave API da Anthropic (começa com <code>sk-ant-api03-...</code>)</label>
+              <div style="display:flex;gap:6px">
+                <input type="password" id="claude-api-key" placeholder="sk-ant-api03-..." style="flex:1;font-family:monospace">
+                <button class="btn btn-s" onclick="toggleApiKeyVis()" title="Mostrar/ocultar">👁</button>
+              </div>
+            </div>
+            <button class="btn btn-p" style="align-self:flex-start;font-size:.9rem" onclick="saveApiKey()">💾 Salvar chave API</button>
+            <div id="api-key-status" style="font-size:.82rem;font-weight:500"></div>
+          </div>
+        </div>
         <div class="card" style="max-width:560px">
           <div class="card-hd"><div class="card-title">Configurações gerais</div></div>
           <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
@@ -1306,6 +1377,7 @@ function goTo(id){
   if(id==='banners')loadBannersAdmin();
   if(id==='ai')initAIGen();
   if(id==='nfe'){loadNfeConfig();loadInvoices();}
+  if(id==='settings')loadApiKeySettings();
 }
 
 // ── LOAD ALL ──
@@ -1753,7 +1825,60 @@ async function toggleProd(id,active){await sb.from('products').update({active:!a
 
 // ══════════════════════════════════════════
 // GERADOR DE QUESTÕES COM IA (Claude API)
+
+async function loadProductsForAI(){
+  try {
+    const {data} = await sb.from('products').select('id,name').eq('active',true).order('name');
+    const sel = document.getElementById('ai-product');
+    if(!sel || !data) return;
+    const current = sel.value;
+    sel.innerHTML = '';
+    // Priority products first
+    const priority = ['reta-final-tjce-2026','reta-final-enam-2026','pc-ap-2017'];
+    const sorted = [...data].sort((a,b) => {
+      const ai = priority.indexOf(a.id), bi = priority.indexOf(b.id);
+      if(ai >= 0 && bi < 0) return -1;
+      if(bi >= 0 && ai < 0) return 1;
+      if(ai >= 0 && bi >= 0) return ai - bi;
+      return a.name.localeCompare(b.name);
+    });
+    sorted.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
+    if(current && [...sel.options].find(o=>o.value===current)) sel.value = current;
+  } catch(e){ console.warn('loadProductsForAI:', e); }
+}
 // ══════════════════════════════════════════
+// ── API KEY MANAGEMENT ──
+function getClaudeApiKey(){
+  return localStorage.getItem('leisecaquest_claude_key') || '';
+}
+
+function saveApiKey(){
+  const key = document.getElementById('claude-api-key').value.trim();
+  if(!key){showToast('Digite a chave API primeiro','error');return;}
+  if(!key.startsWith('sk-ant')){showToast('Chave inválida — deve começar com sk-ant','error');return;}
+  localStorage.setItem('leisecaquest_claude_key', key);
+  document.getElementById('api-key-status').innerHTML = '✅ Chave salva! O Gerador IA está pronto para uso.';
+  showToast('✅ Chave API salva!','success');
+}
+
+function toggleApiKeyVis(){
+  const inp = document.getElementById('claude-api-key');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function loadApiKeySettings(){
+  const key = getClaudeApiKey();
+  const inp = document.getElementById('claude-api-key');
+  if(inp && key) {
+    inp.value = key;
+    document.getElementById('api-key-status').innerHTML = '✅ Chave configurada — Gerador IA pronto.';
+  }
+}
+
 function toggleEditalCtx(){
   var body=document.getElementById('edital-ctx-body');
   var chev=document.getElementById('edital-ctx-chev');
@@ -1763,48 +1888,123 @@ function toggleEditalCtx(){
 }
 
 async function loadEditalFile(input){
-  var file=input.files[0];if(!file)return;
-  var nameEl=document.getElementById('edital-file-name');
-  nameEl.textContent='📄 '+file.name+' (carregando...)';
-  try{
-    if(!file.name.endsWith('.pdf')){
-      var text=await file.text();
-      document.getElementById('edital-ctx-txt').value=text.slice(0,10000);
-      nameEl.textContent='✅ '+file.name+' ('+Math.round(text.length/1000)+'k chars carregados)';
+  var file = input.files[0]; if(!file) return;
+  var nameEl = document.getElementById('edital-file-name');
+  var ctx = document.getElementById('edital-ctx-txt');
+  nameEl.textContent = '⏳ Processando ' + file.name + '...';
+
+  // Open edital section if closed
+  var body=document.getElementById('edital-ctx-body');
+  if(body) body.style.display='block';
+
+  try {
+    if(file.name.endsWith('.pdf')){
+      const apiKey = getClaudeApiKey();
+      if(!apiKey){
+        nameEl.textContent = '❌ Configure sua chave API em Configurações primeiro!';
+        showToast('Configure a chave API do Claude em ⚙️ Configurações!','error');
+        goTo('settings');
+        return;
+      }
+
+      // Read PDF as base64
+      const base64 = await new Promise((res,rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result.split(',')[1]);
+        r.onerror = () => rej(new Error('Leitura falhou'));
+        r.readAsDataURL(file);
+      });
+
+      nameEl.textContent = '🤖 Extraindo conteúdo do PDF com IA...';
+
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-allow-browser': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4000,
+          messages: [{
+            role: 'user',
+            content: [
+              {type:'document', source:{type:'base64',media_type:'application/pdf',data:base64}},
+              {type:'text', text:`Extraia deste edital de concurso público:
+1. Nome do concurso, órgão e banca examinadora
+2. Conteúdo programático completo de cada disciplina
+3. Número de questões por disciplina (se informado)
+4. Formato das provas (múltipla escolha, V/F, discursiva)
+Formate de forma clara para uso como contexto de geração de questões.`}
+            ]
+          }]
+        })
+      });
+
+      const data = await resp.json();
+      const extracted = data.content?.map(b=>b.text||'').join('') || '';
+      ctx.value = extracted.slice(0, 10000);
+      nameEl.textContent = '✅ ' + file.name + ' — conteúdo extraído pela IA';
+
+      // Auto-detect product and show creation prompt
+      const productName = extracted.match(/concurso[:\s]+([^\n]{5,60})/i)?.[1] || file.name.replace('.pdf','');
+      showToast('✅ Edital processado! Revise o contexto e configure a disciplina para gerar questões.', 'success');
+
     } else {
-      nameEl.textContent='⚠️ PDF detectado — cole o texto manualmente para melhor resultado';
-      document.getElementById('edital-ctx-txt').value='';
+      // TXT / DOC
+      const text = await file.text();
+      ctx.value = text.slice(0, 10000);
+      nameEl.textContent = '✅ ' + file.name + ' (' + Math.round(text.length/1000) + 'k chars)';
     }
-  }catch(e){nameEl.textContent='❌ Erro: '+e.message;}
+  } catch(e) {
+    nameEl.textContent = '❌ Erro: ' + e.message;
+    showToast('Erro ao processar arquivo: ' + e.message, 'error');
+  }
 }
 
 var AI_GENERATED = [];
+
+function onProductChange(productId){
+  const tipoSel = document.getElementById('ai-tipo');
+  const cargSel = document.getElementById('ai-cargo');
+  const bancaMap = {
+    'reta-final-tjce-2026': {tipo:'vf', banca:'FCC', cargo:'Analista Judiciário'},
+    'reta-final-enam-2026': {tipo:'mc', banca:'FGV', cargo:'Magistratura'},
+    'pc-ap-2017': {tipo:'mc', banca:'FCC', cargo:'Delegado de Polícia Civil'}
+  };
+  const cfg = bancaMap[productId];
+  if(cfg){
+    if(tipoSel) tipoSel.value = cfg.tipo;
+    if(cargSel) cargSel.value = cfg.cargo;
+    onTipoChange(cfg.tipo);
+  }
+}
 
 function onTipoChange(tipo){
   var falsoRow=document.getElementById('ai-falso-row');
   if(falsoRow)falsoRow.style.display=tipo==='mc'?'none':'';
   var productSel=document.getElementById('ai-product');
-  if(tipo==='mc'&&productSel)productSel.value='reta-final-enam-2026';
-  if(tipo==='vf'&&productSel)productSel.value='reta-final-tjce-2026';
-  // Auto-select cargo
+  if(tipo==='mc'&&productSel&&productSel.value==='reta-final-tjce-2026')productSel.value='reta-final-enam-2026';
+  if(tipo==='vf'&&productSel&&productSel.value==='reta-final-enam-2026')productSel.value='reta-final-tjce-2026';
   var cargoSel=document.getElementById('ai-cargo');
-  if(tipo==='mc'&&cargoSel)cargoSel.value='Magistratura';
+  if(tipo==='mc'&&cargoSel&&cargoSel.value==='Analista Judiciário')cargoSel.value='Magistratura';
 }
 
 function initAIGen(){
-  // populate products in select
-  const sel = document.getElementById('ai-product');
-  if(sel && ALL_PROD.length && ALL_PROD.length > 1){
-    sel.innerHTML = ALL_PROD.filter(p=>p.type==='reta_final').map(p=>
-      `<option value="${p.id}">${p.name}</option>`).join('');
-  }
+  loadApiKeySettings();
+  // Show/hide API key banner
+  const banner = document.getElementById('ai-apikey-banner');
+  if(banner) banner.style.display = getClaudeApiKey() ? 'none' : 'block';
+  // Load products dynamically
+  loadProductsForAI();
 }
-
 async function gerarQuestoes(){
   const lei = document.getElementById('ai-lei').value;
   const cargo = document.getElementById('ai-cargo').value;
   const qty = parseInt(document.getElementById('ai-qty').value);
-  const pctFalso = parseInt(document.getElementById('ai-falso').value);
+  const pctFalso = parseInt(document.getElementById('ai-falso')?.value||'40');
   const tema = document.getElementById('ai-tema').value.trim();
   const productId = document.getElementById('ai-product').value;
 
@@ -1816,9 +2016,6 @@ async function gerarQuestoes(){
   btn.textContent = '⏳ Gerando...';
   status.textContent = 'Chamando Claude API...';
   results.innerHTML = '';
-
-  const nFalso = Math.round(qty * pctFalso / 100);
-  const nVerd = qty - nFalso;
 
   const tipo = document.getElementById('ai-tipo')?.value || 'vf';
   const isMC = tipo === 'mc';
@@ -1863,6 +2060,13 @@ gabarito: índice da alternativa correta (0=A, 1=B, 2=C, 3=D, 4=E)`;
   const systemPrompt = isMC ? systemPromptMC : systemPromptVF;
   const contextBlock = editalCtx ? `\n\nContexto do edital:\n---\n${editalCtx.slice(0,3000)}\n---\n` : '';
 
+  const concursoNames = {
+    'reta-final-tjce-2026': 'Reta Final TJ-CE 2026 (FCC)',
+    'reta-final-enam-2026': 'ENAM 2026.1 (FGV)',
+    'pc-ap-2017': 'Concurso Polícia Civil do Amapá 2017 (FCC)'
+  };
+  const concursoLabel = concursoNames[productId] || productId;
+
   let userPrompt;
   if(isMC){
     userPrompt = `Gere exatamente ${qty} questões de múltipla escolha sobre "${lei}" para o ENAM 2026.1 (FGV), nível de dificuldade para magistratura.${contextBlock}
@@ -1870,19 +2074,31 @@ ${tema ? `Foque especificamente em: ${tema}` : ''}
 Varie os temas abordados dentro da disciplina. Não repita o mesmo artigo/tema duas vezes.
 As questões devem ser do nível exigido pelo ENAM: interpretação jurídica aprofundada, não apenas memorização de artigos.`;
   } else {
-    const pctFalso = parseInt(document.getElementById('ai-falso')?.value||'40');
     const nFalso = Math.round(qty * pctFalso / 100);
     const nVerd = qty - nFalso;
-    userPrompt = `Gere exatamente ${qty} questões sobre "${lei}" para o cargo de ${cargo} do TJ-CE 2026 (FCC).${contextBlock}
+    userPrompt = `Gere exatamente ${qty} questões sobre "${lei}" para o cargo de ${cargo} do ${concursoLabel}.${contextBlock}
 ${tema ? `Foque especificamente em: ${tema}` : ''}
 Distribuição: ${nVerd} questões VERDADEIRAS (gabarito 0) e ${nFalso} questões FALSAS (gabarito 1).
 Varie os artigos abordados. Não repita o mesmo artigo.`;
   }
 
   try {
+    const apiKey = getClaudeApiKey();
+    if(!apiKey){
+      btn.disabled = false; btn.textContent = '✨ Gerar questões';
+      status.textContent = '';
+      showToast('⚠️ Configure sua chave API do Claude em Configurações primeiro!', 'error');
+      goTo('settings');
+      return;
+    }
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
