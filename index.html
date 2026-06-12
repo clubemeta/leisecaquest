@@ -1188,31 +1188,52 @@ function updateChart(c,t){
 // QUESTIONS (VMQ)
 // ═══════════════════════════════════════════════
 let Q_PAGE=0, Q_TOTAL=0, Q_FILTER_LEI='';
+window.ACTIVE_PRODUCT_FILTER=null;
 
 async function loadQuestions(reset=true){
   const lei=document.getElementById('f-lei')?.value||'';
-  if(reset){Q_PAGE=0;Q_FILTER_LEI=lei;}
+  if(reset){Q_PAGE=0; Q_FILTER_LEI=lei; window.ACTIVE_PRODUCT_FILTER=null;}
   const from=Q_PAGE*100, to=from+99;
   const el=document.getElementById('qlist');
-  if(reset) el.innerHTML='<div style="text-align:center;padding:20px;color:var(--dim)">Carregando...</div>';
-  let query=sb.from('questions').select('*,count',{count:'exact'}).eq('active',true).range(from,to).order('id',{ascending:true});
+  if(reset) el.innerHTML='<div style="text-align:center;padding:20px;color:var(--dim)">⏳ Carregando questões...</div>';
+
+  // Construir query — sem filtro de product_id no VMQ geral
+  let query=sb.from('questions').select('*',{count:'exact'}).eq('active',true).range(from,to).order('id',{ascending:true});
   if(Q_FILTER_LEI) query=query.ilike('lei','%'+Q_FILTER_LEI+'%');
-  // Se usuário tem produto específico, filtrar por ele
-  if(window.ACTIVE_PRODUCT_FILTER) query=query.eq('product_id',window.ACTIVE_PRODUCT_FILTER);
+
   const {data,error,count}=await query;
-  if(error||!data){
-    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">Sem questões disponíveis. Tente outro filtro.</div>';
+  if(error){
+    console.error('Erro loadQuestions:',error);
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--red)">❌ Erro ao carregar: '+error.message+'</div>';
     document.getElementById('q-count').textContent='0'; return;
   }
+  if(!data||!data.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">Nenhuma questão encontrada.</div>';
+    document.getElementById('q-count').textContent='0'; return;
+  }
+
   Q_TOTAL=count||data.length;
   if(reset) QUESTIONS=data; else QUESTIONS=[...QUESTIONS,...data];
   document.getElementById('q-count').textContent=Q_TOTAL;
+
   const qHTML=data.map((q,i)=>buildQ(q,from+i)).join('');
-  const moreBtn=Q_PAGE*100+data.length<Q_TOTAL?
-    `<div style="text-align:center;padding:16px"><button onclick="Q_PAGE++;loadQuestions(false)" style="padding:9px 24px;border:1px solid var(--blue);border-radius:6px;background:#fff;color:var(--blue);font-size:.8rem;font-weight:600;cursor:pointer">Carregar mais ${Math.min(100,Q_TOTAL-(Q_PAGE+1)*100)} questões →</button></div>`:
-    `<div style="text-align:center;padding:12px;font-size:.75rem;color:var(--dim)">✓ Todas as ${Q_TOTAL} questões carregadas</div>`;
-  if(reset) el.innerHTML=qHTML+moreBtn;
-  else{const btn=el.querySelector('.load-more-wrap');if(btn)btn.remove();el.insertAdjacentHTML('beforeend',qHTML+`<div class="load-more-wrap">${moreBtn}</div>`);}
+  const loaded=from+data.length;
+  const moreLeft=Q_TOTAL-loaded;
+  const moreBtn=moreLeft>0
+    ?`<div class="load-more-wrap" style="text-align:center;padding:16px">
+        <button onclick="Q_PAGE++;loadQuestions(false)" style="padding:9px 24px;border:1.5px solid var(--blue);border-radius:6px;background:#fff;color:var(--blue);font-size:.8rem;font-weight:600;cursor:pointer">
+          Carregar mais ${Math.min(100,moreLeft)} questões (de ${Q_TOTAL} total) →
+        </button>
+      </div>`
+    :`<div style="text-align:center;padding:12px;font-size:.75rem;color:var(--dim)">✓ Todas as ${Q_TOTAL} questões carregadas</div>`;
+
+  if(reset){
+    el.innerHTML=qHTML+moreBtn;
+  }else{
+    const existing=el.querySelector('.load-more-wrap');
+    if(existing)existing.remove();
+    el.insertAdjacentHTML('beforeend',qHTML+moreBtn);
+  }
 }
 
 function buildQ(q,idx){
@@ -1503,15 +1524,42 @@ async function openRetaFinal(productId, name){
   document.getElementById('page-title').textContent='Reta Final: '+name;
   Q_PAGE=0; Q_FILTER_LEI='';
   const el=document.getElementById('qlist');
-  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">⏳ Carregando questões — '+name+'...</div>';
-  let query=sb.from('questions').select('*,count',{count:'exact'}).eq('product_id',productId).eq('active',true).range(0,99).order('id',{ascending:true});
-  const{data,count}=await query;
-  QUESTIONS=data||[];Q_TOTAL=count||0;
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">⏳ Carregando '+name+'...</div>';
+
+  const{data,error,count}=await sb.from('questions').select('*',{count:'exact'})
+    .eq('product_id',productId).eq('active',true).range(0,99).order('id',{ascending:true});
+
+  if(error||!data||!data.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">Nenhuma questão encontrada para '+name+'.</div>';
+    return;
+  }
+  QUESTIONS=data; Q_TOTAL=count||data.length;
   document.getElementById('q-count').textContent=Q_TOTAL;
   const qHTML=QUESTIONS.map(buildQ).join('');
-  const moreBtn=Q_TOTAL>100?`<div style="text-align:center;padding:16px"><button onclick="Q_PAGE=1;window.ACTIVE_PRODUCT_FILTER='${productId}';loadQuestions(false)" style="padding:9px 24px;border:1px solid var(--blue);border-radius:6px;background:#fff;color:var(--blue);font-size:.8rem;font-weight:600;cursor:pointer">Carregar mais questões →</button></div>`:'';
+  const moreLeft=Q_TOTAL-data.length;
+  const moreBtn=moreLeft>0
+    ?`<div class="load-more-wrap" style="text-align:center;padding:16px">
+        <button onclick="Q_PAGE=1;loadRetaFinalPage('${productId}')" style="padding:9px 24px;border:1.5px solid var(--blue);border-radius:6px;background:#fff;color:var(--blue);font-size:.8rem;font-weight:600;cursor:pointer">
+          Carregar mais ${Math.min(100,moreLeft)} questões →
+        </button>
+      </div>`
+    :`<div style="text-align:center;padding:12px;font-size:.75rem;color:var(--dim)">✓ Todas as ${Q_TOTAL} questões da ${name}</div>`;
   el.innerHTML=qHTML+moreBtn;
   showFT('✅ '+Q_TOTAL+' questões — '+name);
+}
+
+async function loadRetaFinalPage(productId){
+  const from=Q_PAGE*100, to=from+99;
+  const{data,count}=await sb.from('questions').select('*',{count:'exact'})
+    .eq('product_id',productId).eq('active',true).range(from,to).order('id',{ascending:true});
+  if(!data||!data.length)return;
+  QUESTIONS=[...QUESTIONS,...data];
+  const moreLeft=(count||Q_TOTAL)-(from+data.length);
+  const moreBtn=moreLeft>0
+    ?`<div class="load-more-wrap" style="text-align:center;padding:16px"><button onclick="Q_PAGE++;loadRetaFinalPage('${productId}')" style="padding:9px 24px;border:1.5px solid var(--blue);border-radius:6px;background:#fff;color:var(--blue);font-size:.8rem;font-weight:600;cursor:pointer">Carregar mais ${Math.min(100,moreLeft)} →</button></div>`:'';
+  const el=document.getElementById('qlist');
+  const existing=el.querySelector('.load-more-wrap');if(existing)existing.remove();
+  el.insertAdjacentHTML('beforeend',data.map((q,i)=>buildQ(q,from+i)).join('')+moreBtn);
 }
 
 function startSim(simId,total){
