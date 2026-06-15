@@ -408,8 +408,28 @@ body.wide-spacing #btn-espacamento{background:#e0f2fe!important;color:#0369a1!im
       <!-- LOGIN FORM -->
       <div id="form-login">
         <div class="lf-field"><label>Email</label><input type="email" id="l-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-        <div class="lf-field"><label>Senha</label><input type="password" id="l-pwd" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="lf-field" style="position:relative">
+          <label>Senha</label>
+          <input type="password" id="l-pwd" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:42px">
+          <button type="button" onclick="togglePwd('l-pwd',this)" title="Mostrar/ocultar senha" style="position:absolute;right:10px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:0;line-height:1">👁</button>
+        </div>
         <button class="lf-btn" id="btn-login" onclick="doLogin()">Entrar</button>
+        <!-- Login social -->
+        <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
+          <div style="flex:1;height:1px;background:var(--bd)"></div>
+          <span style="font-size:.72rem;color:var(--muted);white-space:nowrap">ou entre com</span>
+          <div style="flex:1;height:1px;background:var(--bd)"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="loginGoogle()" style="flex:1;padding:9px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-size:.8rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google
+          </button>
+          <button onclick="loginFacebook()" style="flex:1;padding:9px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-size:.8rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px"><path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Facebook
+          </button>
+        </div>
         <div class="lf-links">
           <a onclick="showForgot()">Esqueceu a senha?</a>
           <div class="reg">Não tem conta? <a onclick="switchAuth('register')">Cadastre-se!</a></div>
@@ -420,7 +440,11 @@ body.wide-spacing #btn-espacamento{background:#e0f2fe!important;color:#0369a1!im
       <div id="form-register" style="display:none">
         <div class="lf-field"><label>Nome completo</label><input type="text" id="r-name" placeholder="Seu nome"></div>
         <div class="lf-field"><label>Email</label><input type="email" id="r-email" placeholder="seu@email.com"></div>
-        <div class="lf-field"><label>Senha</label><input type="password" id="r-pwd" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')doRegister()"></div>
+        <div class="lf-field" style="position:relative">
+          <label>Senha</label>
+          <input type="password" id="r-pwd" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')doRegister()" style="padding-right:42px">
+          <button type="button" onclick="togglePwd('r-pwd',this)" title="Mostrar/ocultar senha" style="position:absolute;right:10px;bottom:10px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:0;line-height:1">👁</button>
+        </div>
         <button class="lf-btn" id="btn-register" onclick="doRegister()">Criar conta grátis</button>
         <div class="lf-links">
           <div class="reg">Já tem conta? <a onclick="switchAuth('login')">Entrar</a></div>
@@ -499,6 +523,14 @@ body.wide-spacing #btn-espacamento{background:#e0f2fe!important;color:#0369a1!im
         <div class="sb-sub" id="sub-simulados" onclick="navTo('simulados')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Simulados
+        </div>
+        <div class="sb-sub" id="sub-flashcards" onclick="navTo('flashcards')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Flashcards 🃏
+        </div>
+        <div class="sb-sub" id="sub-cronograma" onclick="navTo('cronograma')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Cronograma 📅
         </div>
         <div class="sb-sub" id="sub-disciplinas" onclick="navTo('disciplinas')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></svg>
@@ -1029,6 +1061,93 @@ body.wide-spacing #btn-espacamento{background:#e0f2fe!important;color:#0369a1!im
         <div id="raiox-loading" style="text-align:center;padding:20px;color:var(--dim);display:none">⏳ Carregando...</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px" id="raiox-grid"></div>
         <div id="raiox-footer" style="text-align:center;padding:12px;font-size:.74rem;color:var(--dim);display:none"></div>
+      </div>
+
+      <!-- ═══ FLASHCARDS ═══ -->
+      <div class="page" id="p-flashcards">
+        <div id="fc-deck-view">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px" id="fc-decks-grid">
+            <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--dim)">⏳ Carregando decks...</div>
+          </div>
+        </div>
+        <!-- Viewer de flashcard -->
+        <div id="fc-card-view" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <button onclick="exitFlashcard()" style="padding:6px 12px;border:1px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer;font-size:.78rem;color:var(--muted)">← Voltar</button>
+            <div style="flex:1;font-size:.82rem;font-weight:600" id="fc-deck-titulo">Deck</div>
+            <div id="fc-prog-lbl" style="font-size:.72rem;color:var(--muted)">1/10</div>
+          </div>
+          <!-- Barra de progresso -->
+          <div style="height:5px;background:#e5e7eb;border-radius:3px;margin-bottom:16px;overflow:hidden">
+            <div id="fc-prog-bar" style="height:100%;background:var(--blue);border-radius:3px;transition:width .4s;width:0%"></div>
+          </div>
+          <!-- Card com flip -->
+          <div id="fc-card-container" style="perspective:1000px;cursor:pointer;margin-bottom:16px" onclick="flipCard()">
+            <div id="fc-card-inner" style="position:relative;min-height:240px;transition:transform .5s;transform-style:preserve-3d">
+              <!-- Frente -->
+              <div id="fc-front" style="position:relative;min-height:240px;backface-visibility:hidden;background:#fff;border:1.5px solid var(--bd);border-radius:12px;padding:24px;display:flex;flex-direction:column">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                  <span id="fc-artigo" style="font-size:.7rem;background:var(--blue-bg);color:var(--blue);border-radius:4px;padding:2px 8px;font-weight:700"></span>
+                  <span style="font-size:.7rem;color:var(--muted)">🃏 Toque para revelar</span>
+                </div>
+                <div id="fc-pergunta" style="font-size:.92rem;font-weight:600;line-height:1.6;color:#111;flex:1;display:flex;align-items:center"></div>
+                <div id="fc-categoria" style="font-size:.68rem;color:var(--muted);margin-top:12px"></div>
+              </div>
+              <!-- Verso -->
+              <div id="fc-back" style="position:absolute;inset:0;min-height:240px;backface-visibility:hidden;background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:12px;padding:24px;display:flex;flex-direction:column;transform:rotateY(180deg)">
+                <div style="font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:12px">✅ Resposta</div>
+                <div id="fc-resposta" style="font-size:.88rem;line-height:1.65;color:#f0f9ff;flex:1;display:flex;align-items:center"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Botões de avaliação (visíveis só após flip) -->
+          <div id="fc-actions" style="display:none;gap:10px;justify-content:center">
+            <button onclick="avaliarCard('errei')" style="flex:1;max-width:160px;padding:11px;background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">❌ Errei</button>
+            <button onclick="avaliarCard('domino')" style="flex:1;max-width:160px;padding:11px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">✅ Dominei!</button>
+          </div>
+          <div id="fc-hint" style="text-align:center;font-size:.72rem;color:var(--muted);margin-top:8px">Toque no card para revelar a resposta</div>
+          <!-- Conclusão do deck -->
+          <div id="fc-concluido" style="display:none;text-align:center;padding:40px 20px">
+            <div style="font-size:2.5rem;margin-bottom:12px">🎉</div>
+            <div style="font-size:1rem;font-weight:700;margin-bottom:4px">Deck concluído!</div>
+            <div id="fc-score-txt" style="font-size:.82rem;color:var(--muted);margin-bottom:20px"></div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <button onclick="restartDeck()" style="padding:10px 20px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer">🔄 Refazer</button>
+              <button onclick="exitFlashcard()" style="padding:10px 20px;border:1px solid var(--bd);border-radius:8px;background:#fff;font-size:.82rem;cursor:pointer">← Voltar aos decks</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CRONOGRAMA (DLS: Módulos Diários) ═══ -->
+      <div class="page" id="p-cronograma">
+        <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:12px;padding:20px;margin-bottom:16px;color:#fff">
+          <div style="font-size:1rem;font-weight:700;margin-bottom:4px">📅 Cronograma de Estudos</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.7)">Informe seu concurso e data da prova para gerar um plano personalizado</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="font-size:.72rem;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase">Concurso alvo</label>
+              <input id="crono-concurso" type="text" placeholder="Ex: ENAM 2026, TJ-CE..." style="width:100%;padding:8px 11px;border:1px solid var(--bd);border-radius:6px;font-size:.82rem;outline:none;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:.72rem;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase">Data da prova</label>
+              <input id="crono-data" type="date" style="width:100%;padding:8px 11px;border:1px solid var(--bd);border-radius:6px;font-size:.82rem;outline:none;box-sizing:border-box">
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:.72rem;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase">Horas de estudo por dia</label>
+            <div style="display:flex;gap:6px">
+              <button onclick="setCronoHrs(2)" class="crono-hrs-btn" style="padding:6px 12px;border:1.5px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer;font-size:.78rem">2h</button>
+              <button onclick="setCronoHrs(4)" class="crono-hrs-btn" style="padding:6px 12px;border:1.5px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer;font-size:.78rem">4h</button>
+              <button onclick="setCronoHrs(6)" class="crono-hrs-btn active" style="padding:6px 12px;border:1.5px solid var(--blue);border-radius:6px;background:var(--blue-bg);color:var(--blue);cursor:pointer;font-size:.78rem;font-weight:700">6h</button>
+              <button onclick="setCronoHrs(8)" class="crono-hrs-btn" style="padding:6px 12px;border:1.5px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer;font-size:.78rem">8h+</button>
+            </div>
+          </div>
+          <button onclick="gerarCronograma()" style="width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer">📅 Gerar Cronograma</button>
+        </div>
+        <div id="crono-resultado" style="display:none"></div>
       </div>
 
       <!-- RETAS FINAIS -->
@@ -1644,6 +1763,8 @@ const NAV={
   questoes:{t:'Vade Mecum de Questões',acc:'vmq',sub:'questoes'},
   cadernos:{t:'Cadernos',acc:'vmq',sub:'cadernos'},
   simulados:{t:'Simulados',acc:'vmq',sub:'simulados'},
+  flashcards:{t:'Flashcards',acc:'vmq',sub:'flashcards'},
+  cronograma:{t:'Cronograma de Estudos',acc:'vmq',sub:'cronograma'},
   disciplinas:{t:'Disciplinas',acc:'vmq',sub:'disciplinas'},
   rankings:{t:'Rankings',acc:'vmq',sub:'rankings'},
   filtros:{t:'Filtros salvos',acc:'vmq',sub:'filtros'},
@@ -1671,6 +1792,8 @@ function navTo(id){
     if(bd&&!bd.classList.contains('open')){bd.classList.add('open');if(hd)hd.classList.add('open');}
   }
   closeSidebar();closeProfile();
+  // Carregar dados da página
+  if(id==='flashcards') setTimeout(loadFlashcardDecks,100);
 }
 
 function toggleAcc(id){
@@ -2392,10 +2515,10 @@ async function startSimDB(simId, total, productId, tempoMin){
   runEl.style.display = 'block';
   document.getElementById('sim-q-area').innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim)">⏳ Carregando questões...</div>';
 
-  // Buscar questões
+  // Buscar questões — SEM filtro de product_id para simulados gerais
   var q = sb.from('questions').select('id,enunciado,gabarito,justificativa,lei,artigo,tipo,opcoes,disciplina').eq('active', true);
   if(productId) q = q.eq('product_id', productId);
-  else q = q.is('product_id', null);
+  // Simulado geral: mostra TODAS as questões ativas
   var res = await q.limit(500);
   var data = res.data || [];
 
@@ -2943,7 +3066,86 @@ function openModalPerfil(){
 }
 function closeModalPerfil(){document.getElementById('m-perfil').classList.remove('show');}
 
-// Toggle visual helper (para outros toggles)
+// ── SHOW/HIDE SENHA ──
+function togglePwd(inputId, btn){
+  var inp=document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+
+// ── LOGIN SOCIAL (Google / Facebook) ──
+async function loginGoogle(){
+  try{
+    var{error}=await sb.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo:window.location.origin+window.location.pathname}
+    });
+    if(error) showAuthError('Erro ao entrar com Google: '+error.message);
+  }catch(e){showAuthError('Configure o Google OAuth no Supabase Dashboard → Auth → Providers.');}
+}
+async function loginFacebook(){
+  try{
+    var{error}=await sb.auth.signInWithOAuth({
+      provider:'facebook',
+      options:{redirectTo:window.location.origin+window.location.pathname}
+    });
+    if(error) showAuthError('Erro ao entrar com Facebook: '+error.message);
+  }catch(e){showAuthError('Configure o Facebook OAuth no Supabase Dashboard → Auth → Providers.');}
+}
+
+// ── PRINT COM SELEÇÃO DE FORMATO (estilo DLS) ──
+function printQuestoes(){
+  var qlist=document.getElementById('qlist');
+  var cards=qlist?qlist.querySelectorAll('.q-card'):[];
+  if(!cards.length){showFT('⚠️ Nenhuma questão carregada para imprimir.');return;}
+
+  // Abrir diálogo de formato
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML='<div style="background:#fff;border-radius:12px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)">'
+    +'<div style="font-size:1rem;font-weight:700;margin-bottom:4px">🖨️ Imprimir questões!</div>'
+    +'<div style="font-size:.82rem;color:var(--muted);margin-bottom:20px">Selecione o formato de exibição da impressão que você deseja realizar.</div>'
+    +'<div style="font-size:.8rem;font-weight:600;margin-bottom:10px;color:#111">Selecione o formato de exibição</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">'
+      +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1.5px solid var(--bd);border-radius:7px" onclick="this.style.borderColor=\'var(--blue)\';document.querySelectorAll(\'.fmt-radio\').forEach(l=>l.style.borderColor=\'var(--bd)\');this.style.borderColor=\'var(--blue)\'">'
+        +'<input type="radio" name="print-fmt" value="com_gabarito" class="fmt-radio" checked> Com gabarito e justificativa</label>'
+      +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1.5px solid var(--bd);border-radius:7px" onclick="document.querySelectorAll(\'.fmt-radio-wrap\').forEach(l=>l.style.borderColor=\'var(--bd)\');this.style.borderColor=\'var(--blue)\'">'
+        +'<input type="radio" name="print-fmt" value="sem_gabarito"> Sem gabarito (prova em branco)</label>'
+      +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1.5px solid var(--bd);border-radius:7px">'
+        +'<input type="radio" name="print-fmt" value="so_gabarito"> Só gabarito (folha de respostas)</label>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;justify-content:flex-end">'
+      +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="padding:9px 18px;border:1px solid var(--bd);border-radius:7px;background:#fff;cursor:pointer;font-size:.82rem">Cancelar</button>'
+      +'<button onclick="_doPrint(document.querySelector(\'input[name=print-fmt]:checked\').value);this.closest(\'div[style*=fixed]\').remove()" style="padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.82rem;font-weight:700">Imprimir</button>'
+    +'</div>'
+  +'</div>';
+  document.body.appendChild(overlay);
+}
+
+function _doPrint(format){
+  // Configurar formato antes de imprimir
+  document.body.setAttribute('data-print-format', format);
+  var dateEl=document.getElementById('print-date');
+  var sub=document.getElementById('print-subtitle');
+  if(dateEl) dateEl.textContent=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  if(sub){
+    var titulo=(ACTIVE_PRODUCT_FILTER?document.getElementById('page-title')?.textContent:'VMQ LeisecaQuest')||'LeisecaQuest';
+    var count=document.getElementById('q-count')?.textContent||'';
+    sub.textContent=(count?count+' questões — ':'')+titulo+' — '+format.replace('_',' ')+' — '+new Date().toLocaleDateString('pt-BR');
+  }
+  // Ocultar gabarito se formato "sem_gabarito"
+  if(format==='sem_gabarito'){
+    document.querySelectorAll('.q-fb,.q-opt.ok,.q-opt.ng').forEach(function(el){el.style.display='none';});
+    setTimeout(function(){
+      window.print();
+      document.body.removeAttribute('data-print-format');
+      document.querySelectorAll('.q-fb,.q-opt.ok,.q-opt.ng').forEach(function(el){el.style.display='';});
+    },100);
+  } else {
+    setTimeout(function(){window.print();document.body.removeAttribute('data-print-format');},100);
+  }
+}
 function updateToggleVisual2(spanId,knobId,on){
   var sp=document.getElementById(spanId); var kn=document.getElementById(knobId);
   if(sp) sp.style.background=on?'#1a9fd4':'#e5e7eb';
@@ -3575,7 +3777,204 @@ function applyDark(){
   }
 }
 
-// ── VITALÍCIO BANNER ──
+// ═══════════════════════════════════════════════
+// FLASHCARDS ENGINE
+// ═══════════════════════════════════════════════
+var FC_STATE = {deck:null, cards:[], idx:0, flipped:false, acertos:0, erros:0};
+
+async function loadFlashcardDecks(){
+  var grid=document.getElementById('fc-decks-grid');
+  if(!grid||!sb) return;
+  var{data,error}=await sb.from('flashcard_decks').select('*').eq('active',true).order('disciplina');
+  if(error||!data||!data.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--dim)">Nenhum flashcard disponível ainda.</div>';
+    return;
+  }
+  grid.innerHTML=data.map(function(d){
+    var cores={
+      'Direito Civil':'#dbeafe','Direito Penal':'#fee2e2','Direito Constitucional':'#dcfce7',
+      'Direito Administrativo':'#fef3c7','Direito Processual Civil':'#ede9fe',
+      'Direito do Trabalho':'#ffedd5','Direito Tributário':'#f0fdf4'
+    };
+    var bg=cores[d.disciplina]||'#f3f4f6';
+    return '<div onclick="abrirDeck(\''+d.id+'\')" style="background:#fff;border:1px solid var(--bd);border-radius:10px;overflow:hidden;cursor:pointer;transition:.15s" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 4px 16px rgba(0,0,0,.1)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'
+      +'<div style="height:70px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:2rem">'+escF(d.emoji||'🃏')+'</div>'
+      +'<div style="padding:12px">'
+        +'<div style="font-size:.84rem;font-weight:700;margin-bottom:3px;line-height:1.3">'+escF(d.nome)+'</div>'
+        +'<div style="font-size:.7rem;color:var(--muted);margin-bottom:8px">'+escF(d.disciplina||d.lei||'')+'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+          +'<span style="font-size:.68rem;font-weight:700;color:var(--blue)">'+d.total_cards+' cards</span>'
+          +'<span style="font-size:.68rem;background:var(--blue-bg);color:var(--blue);border-radius:4px;padding:2px 7px;font-weight:600">Estudar →</span>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+async function abrirDeck(deckId){
+  var{data:deck}=await sb.from('flashcard_decks').select('*').eq('id',deckId).single();
+  var{data:cards}=await sb.from('flashcards').select('*').eq('deck_id',deckId).eq('ativo',true).order('ordem');
+  if(!deck||!cards||!cards.length){showFT('Deck sem cards ainda.');return;}
+
+  FC_STATE={deck:deck,cards:cards.sort(function(){return Math.random()-.5;}),idx:0,flipped:false,acertos:0,erros:0};
+
+  document.getElementById('fc-deck-view').style.display='none';
+  document.getElementById('fc-card-view').style.display='block';
+  document.getElementById('fc-concluido').style.display='none';
+  document.getElementById('fc-deck-titulo').textContent=deck.emoji+' '+deck.nome;
+
+  renderFlashcard();
+}
+
+function renderFlashcard(){
+  var s=FC_STATE;
+  if(s.idx>=s.cards.length){mostrarConclusaoFlashcard();return;}
+  var c=s.cards[s.idx];
+  s.flipped=false;
+  var inner=document.getElementById('fc-card-inner');
+  if(inner) inner.style.transform='rotateY(0deg)';
+  document.getElementById('fc-pergunta').textContent=c.pergunta||'';
+  document.getElementById('fc-resposta').textContent=c.resposta||'';
+  document.getElementById('fc-artigo').textContent=c.artigo||c.lei||'';
+  document.getElementById('fc-categoria').textContent=c.categoria||'';
+  var actions=document.getElementById('fc-actions');
+  if(actions){actions.style.display='none';actions.style.flexDirection='row';}
+  var hint=document.getElementById('fc-hint');if(hint)hint.style.display='block';
+  // Progresso
+  var total=s.cards.length;
+  var pct=Math.round(s.idx/total*100);
+  document.getElementById('fc-prog-bar').style.width=pct+'%';
+  document.getElementById('fc-prog-lbl').textContent=(s.idx+1)+'/'+total;
+}
+
+function flipCard(){
+  var s=FC_STATE;
+  if(s.idx>=s.cards.length) return;
+  s.flipped=!s.flipped;
+  var inner=document.getElementById('fc-card-inner');
+  if(inner) inner.style.transform=s.flipped?'rotateY(180deg)':'rotateY(0deg)';
+  var actions=document.getElementById('fc-actions');
+  var hint=document.getElementById('fc-hint');
+  if(s.flipped){
+    if(actions){actions.style.display='flex';}
+    if(hint) hint.style.display='none';
+  } else {
+    if(actions){actions.style.display='none';}
+    if(hint) hint.style.display='block';
+  }
+}
+
+function avaliarCard(resultado){
+  if(resultado==='domino') FC_STATE.acertos++;
+  else FC_STATE.erros++;
+  FC_STATE.idx++;
+  // Salvar progresso se logado
+  if(USER&&FC_STATE.cards[FC_STATE.idx-1]){
+    var cId=FC_STATE.cards[FC_STATE.idx-1].id;
+    sb.from('user_flashcard_progress').upsert({
+      user_id:USER.id,flashcard_id:cId,
+      status:resultado==='domino'?'dominado':'aprendendo',
+      acertos:resultado==='domino'?1:0,erros:resultado==='errei'?1:0,
+      ultima_revisao:new Date().toISOString()
+    },{onConflict:'user_id,flashcard_id'}).catch(function(){});
+  }
+  renderFlashcard();
+}
+
+function mostrarConclusaoFlashcard(){
+  var s=FC_STATE;
+  var total=s.cards.length;
+  var pct=Math.round(s.acertos/total*100);
+  document.getElementById('fc-card-container').style.display='none';
+  document.getElementById('fc-actions').style.display='none';
+  document.getElementById('fc-hint').style.display='none';
+  document.getElementById('fc-concluido').style.display='block';
+  document.getElementById('fc-score-txt').textContent=s.acertos+' de '+total+' dominados — '+pct+'% de aproveitamento';
+  document.getElementById('fc-prog-bar').style.width='100%';
+}
+
+function restartDeck(){
+  FC_STATE.idx=0;FC_STATE.acertos=0;FC_STATE.erros=0;
+  FC_STATE.cards.sort(function(){return Math.random()-.5;});
+  document.getElementById('fc-card-container').style.display='block';
+  document.getElementById('fc-concluido').style.display='none';
+  renderFlashcard();
+}
+
+function exitFlashcard(){
+  document.getElementById('fc-deck-view').style.display='block';
+  document.getElementById('fc-card-view').style.display='none';
+  document.getElementById('fc-card-container').style.display='block';
+}
+
+// ═══════════════════════════════════════════════
+// CRONOGRAMA DE ESTUDOS (Módulos Diários — estilo DLS)
+// ═══════════════════════════════════════════════
+var CRONO_HRS = 6;
+var CRONO_DISCIPLINAS = {
+  'ENAM':['Dir. Constitucional','Dir. Civil','Dir. Processual Civil','Dir. Penal','Dir. Processual Penal','Dir. Tributário','Dir. Administrativo','Dir. Empresarial','Dir. do Trabalho','Dir. Ambiental'],
+  'TJ':['Dir. Constitucional','Dir. Civil','Dir. Processual Civil','Dir. Administrativo','Dir. Penal','Dir. Processual Penal','Estatuto da Magistratura','LINDB'],
+  'PRF':['Dir. Constitucional','Dir. Administrativo','Legislação de Trânsito','Dir. Penal','Dir. Processual Penal','Inglês','Informática'],
+  'PCDF':['Dir. Constitucional','Dir. Penal','Dir. Processual Penal','Criminalística','Dir. Administrativo','Medicina Legal'],
+  'AGU':['Dir. Constitucional','Dir. Administrativo','Dir. Civil','Dir. Processual Civil','Dir. Tributário','Dir. Internacional','Dir. Ambiental'],
+  'DEFAULT':['Dir. Constitucional','Dir. Administrativo','Dir. Civil','Dir. Processual Civil','Dir. Penal','Dir. Tributário']
+};
+
+function setCronoHrs(hrs){
+  CRONO_HRS=hrs;
+  document.querySelectorAll('.crono-hrs-btn').forEach(function(b){
+    var isActive=b.textContent===hrs+'h'||(hrs===8&&b.textContent==='8h+');
+    b.style.cssText='padding:6px 12px;border:1.5px solid '+(isActive?'var(--blue)':'var(--bd)')+';border-radius:6px;background:'+(isActive?'var(--blue-bg)':'#fff')+';cursor:pointer;font-size:.78rem'+(isActive?';color:var(--blue);font-weight:700':'');
+  });
+}
+
+function gerarCronograma(){
+  var concurso=document.getElementById('crono-concurso').value.trim()||'Concurso';
+  var dataProva=document.getElementById('crono-data').value;
+  var hoje=new Date();
+  var dataFim=dataProva?new Date(dataProva):new Date(hoje.getFullYear(),hoje.getMonth()+3,hoje.getDate());
+  var diasRestantes=Math.max(7,Math.round((dataFim-hoje)/(86400000)));
+
+  // Detectar tipo de concurso
+  var tipo='DEFAULT';
+  var cc=concurso.toUpperCase();
+  if(cc.includes('ENAM')||cc.includes('MAGISTRATURA')) tipo='ENAM';
+  else if(cc.includes('TJ')) tipo='TJ';
+  else if(cc.includes('PRF')) tipo='PRF';
+  else if(cc.includes('PC')||cc.includes('DELEGADO')||cc.includes('PCDF')) tipo='PCDF';
+  else if(cc.includes('AGU')) tipo='AGU';
+  var discs=CRONO_DISCIPLINAS[tipo];
+
+  // Distribuir dias
+  var semanas=Math.ceil(diasRestantes/7);
+  var dias=[];
+  for(var i=0;i<Math.min(diasRestantes,56);i++){
+    var disc=discs[i%discs.length];
+    var d=new Date(hoje);d.setDate(d.getDate()+i);
+    var isWeekend=d.getDay()===0||d.getDay()===6;
+    dias.push({num:i+1,data:d,disc:disc,hrs:isWeekend?CRONO_HRS+1:CRONO_HRS,fase:i<Math.floor(diasRestantes*0.5)?'Base':'Revisão'});
+  }
+
+  var el=document.getElementById('crono-resultado');
+  el.style.display='block';
+  el.innerHTML='<div style="font-size:.82rem;font-weight:700;margin-bottom:12px">🗓️ Plano para <strong>'+concurso+'</strong> — '+diasRestantes+' dias restantes</div>'
+  +'<div style="display:flex;flex-direction:column;gap:6px">'
+  +dias.map(function(d){
+    var isHoje=d.num===1;
+    var cor=d.fase==='Base'?'#2563eb':'#d97706';
+    var bgCor=d.fase==='Base'?'#eff6ff':'#fffbeb';
+    return '<div style="background:'+(isHoje?'#f0fdf4':'#fff')+';border:1px solid '+(isHoje?'#16a34a':'var(--bd)')+';border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px">'
+      +'<div style="min-width:40px;text-align:center;font-size:.68rem;font-weight:700;color:var(--muted)">'+d.data.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+'</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-size:.82rem;font-weight:700;color:#111">'+(isHoje?'📌 Hoje — ':'')+d.disc+'</div>'
+        +'<div style="font-size:.68rem;color:var(--muted);margin-top:2px">'+d.hrs+'h · '+d.fase+'</div>'
+      +'</div>'
+      +'<span style="background:'+bgCor+';color:'+cor+';border-radius:4px;padding:2px 7px;font-size:.65rem;font-weight:700">'+d.fase+'</span>'
+    +'</div>';
+  }).join('')
+  +'</div>'
+  +'<div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:8px;font-size:.75rem;color:var(--muted);text-align:center">Cronograma com '+Math.min(dias.length,diasRestantes)+' dias planejados · '+CRONO_HRS+'h/dia · Ajuste conforme seu ritmo</div>';
+}
 function closeVitBanner(){
   document.getElementById('vit-banner')?.classList.remove('show');
   localStorage.setItem('lq_vit_closed','1');
