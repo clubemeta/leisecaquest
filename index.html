@@ -1011,8 +1011,24 @@ body.wide-spacing #btn-espacamento{background:#e0f2fe!important;color:#0369a1!im
 
       <!-- RAIO-X -->
       <div class="page" id="p-raiox">
-        <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Artigos mais cobrados em provas de concursos públicos</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px" id="raiox-grid"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:.82rem;color:var(--muted)">Artigos mais cobrados em provas — baseado nas questões da plataforma</div>
+          <select id="raiox-lei-filter" onchange="renderRaioX()" style="padding:6px 10px;border:1px solid var(--bd);border-radius:6px;font-size:.75rem;background:#fff">
+            <option value="">Todas as disciplinas</option>
+            <option value="Direito Constitucional">Direito Constitucional</option>
+            <option value="Direito Penal">Direito Penal</option>
+            <option value="Direito Civil">Direito Civil</option>
+            <option value="Direito Administrativo">Direito Administrativo</option>
+            <option value="Direito Processual Penal">Proc. Penal</option>
+            <option value="Direito Processual Civil">Proc. Civil</option>
+            <option value="Direito do Trabalho">Direito do Trabalho</option>
+            <option value="Direito Tributário">Direito Tributário</option>
+            <option value="Lei 8.213/91">Previdência (Lei 8.213)</option>
+          </select>
+        </div>
+        <div id="raiox-loading" style="text-align:center;padding:20px;color:var(--dim);display:none">⏳ Carregando...</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px" id="raiox-grid"></div>
+        <div id="raiox-footer" style="text-align:center;padding:12px;font-size:.74rem;color:var(--dim);display:none"></div>
       </div>
 
       <!-- RETAS FINAIS -->
@@ -1089,49 +1105,88 @@ body.wide-spacing #btn-espacamento{background:#e0f2fe!important;color:#0369a1!im
 
 <!-- MODAL: MEU PERFIL -->
 <div class="modal-bg" id="m-perfil" onclick="if(event.target===this)closeModalPerfil()">
-  <div class="modal-box" style="max-width:480px">
+  <div class="modal-box" style="max-width:500px;max-height:92vh;overflow-y:auto">
     <div class="modal-hd"><div class="modal-title">👤 Meu Perfil</div><button class="feat-x" onclick="closeModalPerfil()">✕</button></div>
     <div style="padding:20px">
-      <!-- Avatar + nome -->
-      <div style="text-align:center;margin-bottom:20px">
-        <div id="prof-av" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#1a9fd4,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin:0 auto 10px;cursor:pointer" onclick="openInfoPessoais();closeModalPerfil()" title="Clique para editar"></div>
-        <div id="prof-name-lbl" style="font-size:1rem;font-weight:700"></div>
+      <div style="text-align:center;margin-bottom:16px;position:relative">
+        <div style="position:relative;display:inline-block">
+          <div id="prof-av" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1a9fd4,#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:700;margin:0 auto;cursor:pointer;overflow:hidden;border:3px solid #e5e7eb" onclick="document.getElementById('avatar-file-input').click()" title="Clique para trocar foto">
+            <img id="prof-av-img" src="" style="width:100%;height:100%;object-fit:cover;display:none" alt="Avatar">
+            <span id="prof-av-initials"></span>
+          </div>
+          <div onclick="document.getElementById('avatar-file-input').click()" style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:#1a9fd4;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #fff" title="Trocar foto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:12px;height:12px"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+        </div>
+        <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        <div id="prof-name-lbl" style="font-size:1rem;font-weight:700;margin-top:10px"></div>
         <div id="prof-email-lbl" style="font-size:.8rem;color:var(--dim)"></div>
         <div id="prof-concurso-lbl" style="font-size:.75rem;color:var(--blue);font-weight:600;margin-top:3px"></div>
-        <div id="prof-plan-lbl" style="margin-top:8px"></div>
+        <div id="prof-plan-lbl" style="margin-top:7px"></div>
       </div>
-
-      <!-- Stats -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
-        <div style="background:var(--blue-bg);border-radius:8px;padding:12px;text-align:center">
-          <div id="prof-total-lbl" style="font-size:1.4rem;font-weight:800;color:var(--blue)">0</div>
-          <div style="font-size:.68rem;color:var(--muted)">Respondidas</div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
+        <div style="background:linear-gradient(135deg,#fef9c3,#fde68a);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px">
+          <div id="prof-pontos" style="font-size:1.1rem;font-weight:800;color:#92400e">0</div>
+          <div style="font-size:.65rem;color:#78350f">pontos</div>
         </div>
-        <div style="background:#dcfce7;border-radius:8px;padding:12px;text-align:center">
-          <div id="prof-acertos-lbl" style="font-size:1.4rem;font-weight:800;color:#16a34a">0%</div>
-          <div style="font-size:.68rem;color:var(--muted)">Acerto</div>
+        <div style="background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px">
+          <div id="prof-streak" style="font-size:1.1rem;font-weight:800;color:#991b1b">🔥 0</div>
+          <div style="font-size:.65rem;color:#991b1b">dias</div>
         </div>
-        <div style="background:#fef3c7;border-radius:8px;padding:12px;text-align:center">
-          <div id="prof-cadernos-lbl" style="font-size:1.4rem;font-weight:800;color:#d97706">0</div>
-          <div style="font-size:.68rem;color:var(--muted)">Cadernos</div>
+        <div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:8px;padding:8px 14px;text-align:center;min-width:80px">
+          <div id="prof-seguidores-cnt" style="font-size:1.1rem;font-weight:800;color:#166534">0</div>
+          <div style="font-size:.65rem;color:#166534">seguidores</div>
         </div>
       </div>
-
-      <!-- Info do plano -->
-      <div id="prof-plan-detail" style="border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:.8rem">
-        <div style="font-weight:700;margin-bottom:4px">📋 Detalhes do plano</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:var(--blue-bg);border-radius:8px;padding:10px;text-align:center">
+          <div id="prof-total-lbl" style="font-size:1.3rem;font-weight:800;color:var(--blue)">0</div>
+          <div style="font-size:.66rem;color:var(--muted)">Respondidas</div>
+        </div>
+        <div style="background:#dcfce7;border-radius:8px;padding:10px;text-align:center">
+          <div id="prof-acertos-lbl" style="font-size:1.3rem;font-weight:800;color:#16a34a">0%</div>
+          <div style="font-size:.66rem;color:var(--muted)">Acerto</div>
+        </div>
+        <div style="background:#fef3c7;border-radius:8px;padding:10px;text-align:center">
+          <div id="prof-cadernos-lbl" style="font-size:1.3rem;font-weight:800;color:#d97706">0</div>
+          <div style="font-size:.66rem;color:var(--muted)">Cadernos</div>
+        </div>
+      </div>
+      <div style="border:1px solid var(--bd);border-radius:8px;padding:11px 13px;margin-bottom:12px">
+        <div style="font-size:.77rem;font-weight:700;color:#111;margin-bottom:7px;display:flex;justify-content:space-between"><span>🏆 Conquistas</span><span id="prof-ach-total" style="font-size:.68rem;color:var(--muted);font-weight:400">0 conquistadas</span></div>
+        <div id="prof-ach-list" style="display:flex;flex-wrap:wrap;gap:5px"><div style="font-size:.73rem;color:var(--muted)">Responda questões para ganhar conquistas!</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:8px;padding:11px 13px;margin-bottom:12px">
+        <div style="font-size:.8rem;font-weight:700;color:#1e40af;margin-bottom:3px">🤝 Indique e Ganhe!</div>
+        <div style="font-size:.72rem;color:#1e40af;margin-bottom:7px">Por cada amigo que se cadastrar com seu código, você ganha <strong>7 dias extras</strong>.</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="background:#fff;border:1.5px solid #3b82f6;border-radius:7px;padding:6px 12px;flex:1;font-size:.8rem;font-weight:700;color:#1e40af;letter-spacing:.12em;text-align:center" id="referral-code-display">—</div>
+          <button onclick="copyReferralCode()" style="padding:6px 13px;background:#3b82f6;color:#fff;border:none;border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">📋 Copiar</button>
+          <button onclick="shareReferralLink()" style="padding:6px 13px;background:#fff;color:#3b82f6;border:1px solid #3b82f6;border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">🔗 Compartilhar</button>
+        </div>
+        <div style="font-size:.68rem;color:#60a5fa;margin-top:4px" id="referral-count-lbl">0 amigos indicados</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--bd);border-radius:8px;padding:10px 13px;margin-bottom:12px">
+        <div><div style="font-size:.78rem;font-weight:600">Perfil público</div><div style="font-size:.68rem;color:var(--muted)">Aparece no ranking e pode ser seguido</div></div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+          <input type="checkbox" id="toggle-perfil-publico" onchange="togglePerfilPublico(this.checked)" style="opacity:0;width:0;height:0">
+          <span id="span-perfil-pub" style="position:absolute;inset:0;background:#e5e7eb;border-radius:11px;transition:.25s"></span>
+          <span id="knob-perfil-pub" style="position:absolute;left:2px;top:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>
+        </label>
+      </div>
+      <div style="border:1px solid var(--bd);border-radius:8px;padding:11px 13px;margin-bottom:12px;font-size:.78rem">
+        <div style="font-weight:700;margin-bottom:3px">📋 Plano e acesso</div>
         <div id="prof-plan-info" style="color:var(--muted);line-height:1.7"></div>
       </div>
-
-      <!-- Botões -->
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button onclick="openInfoPessoais();closeModalPerfil()" style="padding:9px 16px;border:none;border-radius:7px;background:var(--blue);color:#fff;font-size:.82rem;font-weight:600;cursor:pointer">✏️ Editar perfil</button>
-        <button onclick="closeModalPerfil();navTo('desempenho')" style="padding:9px 16px;border:1px solid var(--bd);border-radius:7px;background:#fff;font-size:.82rem;font-weight:600;cursor:pointer">📊 Meu desempenho</button>
-        <button onclick="closeModalPerfil();navTo('cadernos')" style="padding:9px 16px;border:1px solid var(--bd);border-radius:7px;background:#fff;font-size:.82rem;font-weight:600;cursor:pointer">📚 Cadernos</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="openInfoPessoais();closeModalPerfil()" style="flex:1;padding:9px 12px;border:none;border-radius:7px;background:var(--blue);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer">✏️ Editar</button>
+        <button onclick="closeModalPerfil();navTo('desempenho')" style="flex:1;padding:9px 12px;border:1px solid var(--bd);border-radius:7px;background:#fff;font-size:.78rem;font-weight:600;cursor:pointer">📊 Desempenho</button>
+        <button onclick="closeModalPerfil();navTo('cadernos')" style="flex:1;padding:9px 12px;border:1px solid var(--bd);border-radius:7px;background:#fff;font-size:.78rem;font-weight:600;cursor:pointer">📚 Cadernos</button>
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- MODAL: INFORMAÇÕES PESSOAIS -->
 <div class="modal-bg" id="m-info-pessoais" onclick="if(event.target===this)document.getElementById('m-info-pessoais').classList.remove('show')">
@@ -1314,8 +1369,10 @@ const ALL_DISCS = [
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+var PLATFORM_INITIALIZED = false;
+var CURRENT_NAV_PAGE = 'desempenho'; // rastrear página atual
+
 window.addEventListener('DOMContentLoaded', async () => {
-  // Check session
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     USER = session.user;
@@ -1327,13 +1384,24 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' && session) {
+  if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
     USER = session.user;
-    await loadProfile();
-    showPlatform();
-    setTimeout(unlockChipsForUser, 800);
+    if (!PLATFORM_INITIALIZED) {
+      // Primeiro login: inicializar plataforma
+      await loadProfile();
+      showPlatform();
+      setTimeout(unlockChipsForUser, 800);
+    } else {
+      // Apenas atualizar dados do usuário sem resetar navegação
+      await loadProfile();
+      unlockChipsForUser();
+    }
+  } else if (event === 'TOKEN_REFRESHED' && session) {
+    // Token refresh (volta de aba): só atualiza USER, não redireciona
+    USER = session.user;
   } else if (event === 'SIGNED_OUT') {
     USER = null; PROFILE = null;
+    PLATFORM_INITIALIZED = false;
     showLogin();
   }
 });
@@ -1353,7 +1421,10 @@ function showPlatform(){
   document.getElementById('app').style.display='block';
   document.getElementById('login').style.display='none';
   document.getElementById('platform').style.display='block';
-  initPlatform();
+  if(!PLATFORM_INITIALIZED){
+    PLATFORM_INITIALIZED=true;
+    initPlatform();
+  }
 }
 
 function switchAuth(tab){
@@ -1584,12 +1655,9 @@ const NAV={
 
 function navTo(id){
   const m=NAV[id];if(!m)return;
-  // Check gated pages
   const gated={cadernos:'cadernos',simulados:'simulados',materiais:'materiais'};
-  if(gated[id]&&!hasAccess(gated[id])){
-    showUpsell(id);
-    return;
-  }
+  if(gated[id]&&!hasAccess(gated[id])){showUpsell(id);return;}
+  CURRENT_NAV_PAGE=id; // salvar página atual para não perder ao voltar à aba
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   const pg=document.getElementById('p-'+id);if(pg)pg.classList.add('show');
   document.getElementById('page-title').textContent=m.t;
@@ -1838,6 +1906,8 @@ async function answerQ(qId){
   S.stats.t++;S.stats.u++;
   if(ok)S.stats.c++;else S.stats.e++;
   updateStats();
+  // Verificar conquistas
+  if(S.stats.t%10===0||S.stats.t===1) setTimeout(function(){checkAchievements(S.stats);},500);
   // Som ao responder
   if(localStorage.getItem('lq_sound')!=='false'){
     try{
@@ -2128,20 +2198,80 @@ async function renderRanking(){
 // ═══════════════════════════════════════════════
 // RAIO-X
 // ═══════════════════════════════════════════════
-function renderRaioX(){
-  const items=[
-    {n:'Art. 5º — Direitos Fundamentais (CF)',p:95},{n:'Art. 2º — Abolitio criminis (CP)',p:91},
-    {n:'Art. 37 — Princípios LIMPE (CF)',p:88},{n:'Art. 157 — Roubo (CP)',p:84},
-    {n:'Art. 1.640 — Regime de bens (CC)',p:76},{n:'Art. 61 — Qualificadoras (CP)',p:78},
-    {n:'Art. 206 — Prescrição (CC)',p:69},{n:'Art. 9º — Registros Públicos (L.6015)',p:72},
-    {n:'Art. 100 — Precatórios (CF)',p:62},{n:'Art. 927 — Resp. Civil (CC)',p:70},
-  ];
-  document.getElementById('raiox-grid').innerHTML=items.map(it=>`
-    <div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:7px">
-      <div style="font-size:.76rem;font-weight:600;line-height:1.4">${it.n}</div>
-      <div style="height:5px;border-radius:3px;background:#e5e7eb;overflow:hidden"><div style="height:100%;border-radius:3px;background:${it.p>80?'#16a34a':it.p>60?'#1a9fd4':'#ea580c'};width:${it.p}%"></div></div>
-      <div style="font-size:.68rem;color:var(--muted)">${it.p}% cobrado em provas</div>
-    </div>`).join('');
+async function renderRaioX(){
+  var grid=document.getElementById('raiox-grid');
+  var loading=document.getElementById('raiox-loading');
+  var footer=document.getElementById('raiox-footer');
+  if(!grid) return;
+
+  var leiFilter=document.getElementById('raiox-lei-filter')?.value||'';
+  if(loading) loading.style.display='block';
+  grid.innerHTML='';
+
+  try{
+    // Buscar artigos mais cobrados no banco — agrupar por artigo e lei
+    var query=sb.from('questions').select('lei,artigo,banca').eq('active',true).limit(1000);
+    if(leiFilter) query=query.ilike('lei','%'+leiFilter+'%');
+    var{data,error}=await query;
+
+    if(error||!data||!data.length){
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--dim)">Nenhum dado encontrado.</div>';
+      if(loading) loading.style.display='none';
+      return;
+    }
+
+    // Agrupar por artigo + lei
+    var counts={};
+    var bancaCounts={};
+    data.forEach(function(q){
+      var key=(q.artigo||'Geral')+' | '+(q.lei||'');
+      counts[key]=(counts[key]||0)+1;
+      if(!bancaCounts[key]) bancaCounts[key]={};
+      if(q.banca) bancaCounts[key][q.banca]=(bancaCounts[key][q.banca]||0)+1;
+    });
+
+    // Ordenar por frequência
+    var sorted=Object.entries(counts).sort(function(a,b){return b[1]-a[1];}).slice(0,24);
+    var max=sorted[0]?sorted[0][1]:1;
+
+    if(loading) loading.style.display='none';
+    if(!sorted.length){
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--dim)">Nenhum artigo encontrado para este filtro.</div>';
+      return;
+    }
+
+    grid.innerHTML=sorted.map(function(entry){
+      var key=entry[0]; var count=entry[1];
+      var pct=Math.round((count/max)*100);
+      var parts=key.split(' | ');
+      var artigo=parts[0]||''; var lei=parts[1]||'';
+      var color=pct>80?'#16a34a':pct>50?'#1a9fd4':'#ea580c';
+      var bancas=Object.keys(bancaCounts[key]||{}).slice(0,2).join(', ');
+      return '<div style="background:#fff;border:1px solid var(--bd);border-radius:8px;padding:13px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:.15s" onclick="filterRaioX(\''+escF(lei)+'\')" title="Filtrar questões dessa lei">'
+        +'<div style="font-size:.76rem;font-weight:700;color:#111;line-height:1.4">'+escF(artigo)+'</div>'
+        +'<div style="font-size:.66rem;color:var(--muted);line-height:1.3">'+escF(lei.substring(0,50))+'</div>'
+        +'<div style="height:5px;border-radius:3px;background:#e5e7eb;overflow:hidden"><div style="height:100%;border-radius:3px;background:'+color+';width:'+pct+'%;transition:width 1s"></div></div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<span style="font-size:.65rem;color:var(--muted)">'+count+' questão(ões)'+(bancas?' · '+bancas:'')+'</span>'
+        +'<span style="font-size:.66rem;font-weight:700;color:'+color+'">'+pct+'%</span>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+
+    if(footer){ footer.style.display='block'; footer.textContent='Top '+sorted.length+' de '+Object.keys(counts).length+' artigos. Clique em um card para filtrar questões daquela lei.'; }
+
+  }catch(e){
+    if(loading) loading.style.display='none';
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#dc2626">❌ Erro ao carregar: '+e.message+'</div>';
+  }
+}
+
+function filterRaioX(lei){
+  if(!lei) return;
+  ACTIVE_PRODUCT_FILTER=null;
+  navTo('questoes');
+  document.getElementById('f-lei').value=lei;
+  loadQuestions(true);
 }
 
 // ═══════════════════════════════════════════════
@@ -2745,48 +2875,205 @@ document.addEventListener('click',function(e){if(!e.target.closest('#pmenu')&&!e
 
 // ── MEU PERFIL ──
 function openModalPerfil(){
-  if(!window.PROFILE)return;
+  if(!window.PROFILE) return;
   var p=window.PROFILE;
   var nm=(p.name||p.email||'?').split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('').toUpperCase();
-  document.getElementById('prof-av').textContent=nm;
-  document.getElementById('prof-name-lbl').textContent=p.name||'Sem nome';
-  document.getElementById('prof-email-lbl').textContent=p.email||'';
 
-  // Concurso alvo
-  var concEl=document.getElementById('prof-concurso-lbl');
-  if(concEl) concEl.textContent=p.concurso_alvo?'🎯 '+p.concurso_alvo:'';
+  // Avatar — foto ou iniciais
+  var avEl=document.getElementById('prof-av');
+  var avImg=document.getElementById('prof-av-img');
+  var avInit=document.getElementById('prof-av-initials');
+  if(avEl){
+    if(p.avatar_url){
+      if(avImg){avImg.src=p.avatar_url;avImg.style.display='block';}
+      if(avInit) avInit.style.display='none';
+    } else {
+      if(avImg) avImg.style.display='none';
+      if(avInit){avInit.textContent=nm;avInit.style.display='block';}
+    }
+  }
 
-  // Badge do plano
-  var planLabel={free:'🆓 Plano Gratuito',vmq_vitalicio:'⭐ VMQ Vitalício',premium_anual:'💎 Premium Anual',premium_vitalicio:'💎 Premium Vitalício',ilimitada_anual:'♾️ Ilimitada Anual',ilimitada_vitalicia:'♾️ Ilimitada Vitalícia',reta_final:'🎯 Reta Final'};
+  var nlbl=document.getElementById('prof-name-lbl'); if(nlbl) nlbl.textContent=p.name||'Sem nome';
+  var elbl=document.getElementById('prof-email-lbl'); if(elbl) elbl.textContent=p.email||'';
+  var clbl=document.getElementById('prof-concurso-lbl'); if(clbl) clbl.textContent=p.concurso_alvo?'🎯 '+p.concurso_alvo:'';
+
+  // Plano badge
+  var planLabel={free:'🆓 Gratuito',vmq_vitalicio:'⭐ VMQ Vitalício',premium_anual:'💎 Premium Anual',premium_vitalicio:'💎 Premium Vitalício',ilimitada_anual:'♾️ Ilimitada Anual',ilimitada_vitalicia:'♾️ Ilimitada Vitalícia',reta_final:'🎯 Reta Final'};
   var planColor={free:'#6b7280',vmq_vitalicio:'#1a9fd4',premium_anual:'#ea580c',premium_vitalicio:'#ea580c',ilimitada_anual:'#16a34a',ilimitada_vitalicia:'#16a34a',reta_final:'#7c3aed'};
   var plan=p.plan||'free';
-  document.getElementById('prof-plan-lbl').innerHTML='<span style="background:'+((planColor[plan]||'#9ca3af')+'22')+';color:'+(planColor[plan]||'#9ca3af')+';border-radius:999px;padding:4px 14px;font-size:.76rem;font-weight:700">'+(planLabel[plan]||plan)+'</span>';
+  var plbl=document.getElementById('prof-plan-lbl');
+  if(plbl) plbl.innerHTML='<span style="background:'+((planColor[plan]||'#9ca3af')+'22')+';color:'+(planColor[plan]||'#9ca3af')+';border-radius:999px;padding:3px 14px;font-size:.74rem;font-weight:700">'+(planLabel[plan]||plan)+'</span>';
 
   // Stats
   var stats=window.S&&window.S.stats?window.S.stats:{t:0,c:0,e:0};
-  document.getElementById('prof-total-lbl').textContent=(stats.t||0).toLocaleString('pt-BR');
-  var pct=stats.t?Math.round(stats.c/stats.t*100)+'%':'—';
-  document.getElementById('prof-acertos-lbl').textContent=pct;
-  var cadEl=document.getElementById('prof-cadernos-lbl');
-  if(cadEl) cadEl.textContent=(window.ALL_CADS||[]).length;
+  var tlbl=document.getElementById('prof-total-lbl'); if(tlbl) tlbl.textContent=(stats.t||0).toLocaleString('pt-BR');
+  var albl=document.getElementById('prof-acertos-lbl'); if(albl) albl.textContent=stats.t?Math.round(stats.c/stats.t*100)+'%':'—';
+  var cal=document.getElementById('prof-cadernos-lbl'); if(cal) cal.textContent=(window.ALL_CADS||[]).length;
 
-  // Detalhes do plano
-  var planInfo=document.getElementById('prof-plan-info');
-  if(planInfo){
-    var lines=[];
-    lines.push('Plano atual: <strong>'+(planLabel[plan]||plan)+'</strong>');
-    if(p.plan_expires_at) lines.push('Expira em: <strong>'+new Date(p.plan_expires_at).toLocaleDateString('pt-BR')+'</strong>');
-    if(p.trial_expires_at&&p.plan==='free'){
-      var trialDays=Math.ceil((new Date(p.trial_expires_at)-new Date())/(1000*60*60*24));
-      if(trialDays>0) lines.push('Trial: <strong>'+trialDays+' dias restantes</strong>');
-    }
+  // Pontos e streak
+  var pon=document.getElementById('prof-pontos'); if(pon) pon.textContent=(p.pontos||0).toLocaleString('pt-BR');
+  var stk=document.getElementById('prof-streak'); if(stk) stk.textContent='🔥 '+(p.streak_dias||0);
+
+  // Plano info
+  var pi=document.getElementById('prof-plan-info');
+  if(pi){
+    var lines=['Plano: <strong>'+(planLabel[plan]||plan)+'</strong>'];
+    if(p.plan_expires_at) lines.push('Expira: <strong>'+new Date(p.plan_expires_at).toLocaleDateString('pt-BR')+'</strong>');
+    if(p.trial_expires_at&&p.plan==='free'){var td=Math.ceil((new Date(p.trial_expires_at)-new Date())/(86400000));if(td>0)lines.push('Trial: <strong>'+td+' dias restantes</strong>');}
     lines.push('Membro desde: <strong>'+new Date(p.created_at||Date.now()).toLocaleDateString('pt-BR')+'</strong>');
-    planInfo.innerHTML=lines.join('<br>');
+    pi.innerHTML=lines.join('<br>');
   }
+
+  // Código de referral
+  var rc=document.getElementById('referral-code-display'); if(rc) rc.textContent=p.referral_code||'—';
+  var rl=document.getElementById('referral-count-lbl'); if(rl) rl.textContent=(p.total_referrals||0)+' amigos indicados';
+
+  // Perfil público toggle
+  var tog=document.getElementById('toggle-perfil-publico');
+  if(tog){
+    tog.checked=!!p.perfil_publico;
+    updateToggleVisual2('span-perfil-pub','knob-perfil-pub',!!p.perfil_publico);
+  }
+
+  // Conquistas
+  loadUserAchievements();
+  loadSeguidores();
 
   document.getElementById('m-perfil').classList.add('show');
 }
 function closeModalPerfil(){document.getElementById('m-perfil').classList.remove('show');}
+
+// Toggle visual helper (para outros toggles)
+function updateToggleVisual2(spanId,knobId,on){
+  var sp=document.getElementById(spanId); var kn=document.getElementById(knobId);
+  if(sp) sp.style.background=on?'#1a9fd4':'#e5e7eb';
+  if(kn) kn.style.transform=on?'translateX(18px)':'translateX(0)';
+}
+
+async function togglePerfilPublico(on){
+  if(!USER) return;
+  await sb.from('profiles').update({perfil_publico:on}).eq('id',USER.id).catch(function(){});
+  if(PROFILE) PROFILE.perfil_publico=on;
+  updateToggleVisual2('span-perfil-pub','knob-perfil-pub',on);
+  showFT(on?'✅ Perfil público ativado':'🔒 Perfil privado');
+}
+
+// Referral
+function copyReferralCode(){
+  var code=PROFILE?.referral_code;
+  if(!code){showFT('⚠️ Código não disponível');return;}
+  navigator.clipboard.writeText(code).then(function(){showFT('✅ Código copiado: '+code);}).catch(function(){showFT('Código: '+code);});
+}
+function shareReferralLink(){
+  var code=PROFILE?.referral_code;
+  if(!code) return;
+  var link=window.location.origin+window.location.pathname+'?ref='+code;
+  if(navigator.share){
+    navigator.share({title:'LeisecaQuest',text:'Use meu código '+code+' e ganhe 7 dias grátis!',url:link});
+  } else {
+    navigator.clipboard.writeText(link).then(function(){showFT('🔗 Link copiado!');});
+  }
+}
+
+// ── CONQUISTAS ──
+async function loadUserAchievements(){
+  var el=document.getElementById('prof-ach-list');
+  var cnt=document.getElementById('prof-ach-total');
+  if(!el||!USER) return;
+  var{data}=await sb.from('user_achievements').select('achievement_id,achievements(nome,emoji)').eq('user_id',USER.id).order('conquistado_em',{ascending:false}).limit(12).catch(function(){return{data:[]};});
+  if(!data||!data.length){
+    el.innerHTML='<div style="font-size:.73rem;color:var(--muted)">Responda questões para ganhar conquistas! 🎯</div>';
+    if(cnt) cnt.textContent='0 conquistadas';
+    return;
+  }
+  if(cnt) cnt.textContent=data.length+' conquistadas';
+  el.innerHTML=data.map(function(a){
+    var ac=a.achievements;
+    return '<span title="'+(ac?.nome||'')+'" style="display:inline-flex;align-items:center;gap:3px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:3px 8px;font-size:.7rem;cursor:default">'+(ac?.emoji||'🏆')+' '+(ac?.nome||'')+'</span>';
+  }).join('');
+}
+
+// Toast de conquista desbloqueada
+function showAchievementToast(ach){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #f59e0b;border-radius:10px;padding:12px 20px;z-index:9999;font-size:.84rem;font-weight:600;color:#92400e;box-shadow:0 4px 20px rgba(0,0,0,.15);display:flex;align-items:center;gap:8px;min-width:220px';
+  t.innerHTML='<span style="font-size:1.3rem">'+(ach.emoji||'🏆')+'</span><div><div style="font-weight:700">Conquista desbloqueada!</div><div style="font-size:.75rem;font-weight:400">'+ach.nome+'</div></div>';
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.transition='.5s';t.style.opacity='0';setTimeout(function(){t.remove();},500);},3500);
+}
+
+// Verificar e desbloquear conquistas
+async function checkAchievements(stats){
+  if(!USER) return;
+  var toUnlock=[];
+  if(stats.t>=1) toUnlock.push('first_question');
+  if(stats.t>=10) toUnlock.push('q_10');
+  if(stats.t>=50) toUnlock.push('q_50');
+  if(stats.t>=100) toUnlock.push('q_100');
+  if(stats.t>=500) toUnlock.push('q_500');
+  if(stats.t>=1000) toUnlock.push('q_1000');
+  if(stats.t>0&&(stats.c/stats.t)>=0.6) toUnlock.push('acerto_60');
+  if(stats.t>0&&(stats.c/stats.t)>=0.8) toUnlock.push('acerto_80');
+  for(var i=0;i<toUnlock.length;i++){
+    var id=toUnlock[i];
+    var{error}=await sb.from('user_achievements').insert({user_id:USER.id,achievement_id:id}).catch(function(){return{error:true};});
+    if(!error){
+      // Conquistou! Buscar detalhes para toast
+      var{data:ach}=await sb.from('achievements').select('nome,emoji').eq('id',id).single().catch(function(){return{data:null};});
+      if(ach) showAchievementToast(ach);
+    }
+  }
+}
+
+// Seguidores
+async function loadSeguidores(){
+  var el=document.getElementById('prof-seguidores-cnt');
+  if(!el||!USER) return;
+  var{count}=await sb.from('user_follows').select('*',{count:'exact',head:true}).eq('following_id',USER.id).catch(function(){return{count:0};});
+  if(el) el.textContent=count||0;
+}
+
+// ── UPLOAD DE AVATAR ──
+async function uploadAvatar(input){
+  if(!input.files||!input.files[0]||!USER) return;
+  var file=input.files[0];
+  if(file.size>2097152){showFT('⚠️ Imagem muito grande (máx 2MB)');return;}
+  showFT('⏳ Enviando foto...');
+  var ext=file.name.split('.').pop().toLowerCase();
+  var path=USER.id+'/avatar.'+ext;
+  var{data,error}=await sb.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type}).catch(function(e){return{error:e};});
+  if(error){showFT('❌ Erro: '+error.message);return;}
+  var{data:{publicUrl}}=sb.storage.from('avatars').getPublicUrl(path);
+  await sb.from('profiles').update({avatar_url:publicUrl}).eq('id',USER.id);
+  if(PROFILE) PROFILE.avatar_url=publicUrl;
+  var avImg=document.getElementById('prof-av-img');
+  var avInit=document.getElementById('prof-av-initials');
+  if(avImg){avImg.src=publicUrl+'?t='+Date.now();avImg.style.display='block';}
+  if(avInit) avInit.style.display='none';
+  // Atualizar topbar avatar
+  updateTopbarAvatar();
+  showFT('✅ Foto atualizada!');
+  // Marcar conquista de perfil completo
+  if(PROFILE?.name&&PROFILE?.phone&&PROFILE?.concurso_alvo){
+    await sb.from('user_achievements').insert({user_id:USER.id,achievement_id:'perfil_completo'}).catch(function(){});
+  }
+}
+
+function updateTopbarAvatar(){
+  var tbAv=document.getElementById('tb-avatar-img');
+  var tbIn=document.getElementById('tb-avatar-init');
+  if(!PROFILE) return;
+  if(PROFILE.avatar_url){
+    if(tbAv){tbAv.src=PROFILE.avatar_url;tbAv.style.display='block';}
+    if(tbIn) tbIn.style.display='none';
+  } else {
+    if(tbAv) tbAv.style.display='none';
+    if(tbIn){
+      var nm=(PROFILE.name||PROFILE.email||'?').split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('').toUpperCase();
+      tbIn.textContent=nm;tbIn.style.display='block';
+    }
+  }
+}
 
 // ── INFORMAÇÕES PESSOAIS ──
 function openInfoPessoais(){
